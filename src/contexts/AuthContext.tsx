@@ -66,15 +66,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // Get initial session with faster timeout
+    // Get initial session with increased timeout
     const getInitialSession = async () => {
       try {
         setError(null)
         console.log('Getting initial session...')
         
-        // Set a shorter timeout for initial load
+        // Increased timeout from 5000ms to 15000ms for better reliability
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+          setTimeout(() => reject(new Error('Session check timeout')), 15000)
         )
         
         const sessionPromise = AuthService.getCurrentUser()
