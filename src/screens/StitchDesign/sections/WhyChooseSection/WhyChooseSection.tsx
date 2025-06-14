@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../../../../components/ui/button";
 import { Card, CardContent } from "../../../../components/ui/card";
 
-// Feature data for "Why Choose EduGenius?" section
+// Feature data for "Why Choose MyEduPro?" section
 const features = [
   {
     icon: "/vector---0-2.svg",
@@ -58,7 +58,7 @@ export const WhyChooseSection = (): JSX.Element => {
                     Your Personalized AI Tutor for Academic Success
                   </h1>
                   <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm sm:text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
-                    EduGenius offers AI-powered tutoring tailored for Pakistani
+                    MyEduPro offers AI-powered tutoring tailored for Pakistani
                     students, covering Metric, FSc, O-levels, A-levels, and
                     competitive exam preparation like MDCAT and ECAT.
                   </p>
@@ -76,17 +76,17 @@ export const WhyChooseSection = (): JSX.Element => {
           </div>
         </div>
 
-        {/* Why Choose EduGenius? Section */}
+        {/* Why Choose MyEduPro? Section */}
         <div className="flex flex-col items-start gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10 w-full">
           <div className="gap-4 flex flex-col items-start w-full">
             <div className="max-w-[720px]">
               <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
-                Why Choose EduGenius?
+                Why Choose MyEduPro?
               </h2>
             </div>
             <div className="max-w-[720px]">
               <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm md:text-base tracking-[0] leading-6">
-                EduGenius provides a unique learning experience tailored to the
+                MyEduPro provides a unique learning experience tailored to the
                 needs of Pakistani students.
               </p>
             </div>
@@ -164,7 +164,7 @@ export const WhyChooseSection = (): JSX.Element => {
               Ready to Boost Your Academic Performance?
             </h2>
             <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm md:text-base tracking-[0] leading-6 max-w-[500px]">
-              Join EduGenius today and experience the future of learning.
+              Join MyEduPro today and experience the future of learning.
             </p>
           </div>
           <Button 

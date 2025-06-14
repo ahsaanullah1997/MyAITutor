@@ -80,7 +80,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <div className="w-3 h-3 bg-white rounded-full" />
           </div>
           <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg">
-            EduGenius
+            MyEduPro
           </h1>
         </div>
 

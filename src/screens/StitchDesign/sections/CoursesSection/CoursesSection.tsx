@@ -49,7 +49,7 @@ export const CoursesSection = (): JSX.Element => {
           {/* Copyright */}
           <div className="flex items-center w-full justify-center">
             <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-base text-center tracking-[0] leading-5 md:leading-6">
-              © 2024 EduGenius. All rights reserved.
+              © 2024 MyEduPro. All rights reserved.
             </p>
           </div>
         </div>

@@ -43,7 +43,7 @@ export const HeroSection = (): JSX.Element => {
         </div>
         <div className="flex items-start">
           <h1 className="font-bold text-white text-lg leading-[23px] font-['Lexend',Helvetica]">
-            EduGenius
+            MyEduPro
           </h1>
         </div>
       </div>
