@@ -119,7 +119,10 @@ export const DashboardOverview = (): JSX.Element => {
         <p className="[font-family:'Lexend',Helvetica] text-white/90 mb-4">
           Ready to continue your learning journey? You're doing great in {profile?.grade}!
         </p>
-        <Button className="bg-white text-[#3f8cbf] hover:bg-gray-100 [font-family:'Lexend',Helvetica] font-bold">
+        <Button 
+          className="bg-white text-[#3f8cbf] hover:bg-gray-100 [font-family:'Lexend',Helvetica] font-bold"
+          onClick={() => window.location.href = '/dashboard/ai-tutor'}
+        >
           Continue Learning
         </Button>
       </div>
@@ -195,16 +198,28 @@ export const DashboardOverview = (): JSX.Element => {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <Button className="w-full bg-[#3f8cbf] hover:bg-[#2d6a94] text-white justify-start [font-family:'Lexend',Helvetica]">
+                <Button 
+                  className="w-full bg-[#3f8cbf] hover:bg-[#2d6a94] text-white justify-start [font-family:'Lexend',Helvetica]"
+                  onClick={() => window.location.href = '/dashboard/ai-tutor'}
+                >
                   🤖 Ask AI Tutor
                 </Button>
-                <Button className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]">
+                <Button 
+                  className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]"
+                  onClick={() => window.location.href = '/dashboard/tests'}
+                >
                   📝 Take Practice Test
                 </Button>
-                <Button className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]">
+                <Button 
+                  className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]"
+                  onClick={() => window.location.href = '/dashboard/materials'}
+                >
                   📚 Browse Materials
                 </Button>
-                <Button className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]">
+                <Button 
+                  className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]"
+                  onClick={() => window.location.href = '/dashboard/progress'}
+                >
                   📊 View Progress
                 </Button>
               </div>

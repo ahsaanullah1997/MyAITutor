@@ -174,6 +174,7 @@ export const PricingPage = (): JSX.Element => {
                         ? 'bg-white text-[#3f8cbf] hover:bg-gray-100' 
                         : 'bg-[#3f8cbf] text-white hover:bg-[#2d6a94]'
                     }`}
+                    onClick={() => window.location.href = '/signup'}
                   >
                     {plan.buttonText}
                   </Button>
@@ -274,7 +275,10 @@ export const PricingPage = (): JSX.Element => {
             <p className="[font-family:'Lexend',Helvetica] font-normal text-white/90 text-lg tracking-[0] leading-7 mb-8 max-w-[600px] mx-auto">
               Join thousands of students who have already improved their grades with EduGenius. Start your free trial today!
             </p>
-            <Button className="h-12 px-8 bg-white text-[#3f8cbf] hover:bg-gray-100 rounded-lg [font-family:'Lexend',Helvetica] font-bold transition-colors">
+            <Button 
+              className="h-12 px-8 bg-white text-[#3f8cbf] hover:bg-gray-100 rounded-lg [font-family:'Lexend',Helvetica] font-bold transition-colors"
+              onClick={() => window.location.href = '/signup'}
+            >
               Start Free Trial
             </Button>
           </div>

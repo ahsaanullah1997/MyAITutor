@@ -65,7 +65,10 @@ export const WhyChooseSection = (): JSX.Element => {
                 </div>
               </div>
               <div className="absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2">
-                <Button className="h-10 md:h-12 px-4 md:px-5 bg-[#3f8cbf] rounded-3xl [font-family:'Lexend',Helvetica] font-bold text-sm md:text-base">
+                <Button 
+                  className="h-10 md:h-12 px-4 md:px-5 bg-[#3f8cbf] rounded-3xl [font-family:'Lexend',Helvetica] font-bold text-sm md:text-base"
+                  onClick={() => window.location.href = '/signup'}
+                >
                   Get Started
                 </Button>
               </div>
@@ -164,7 +167,10 @@ export const WhyChooseSection = (): JSX.Element => {
               Join EduGenius today and experience the future of learning.
             </p>
           </div>
-          <Button className="h-10 md:h-12 px-4 md:px-5 bg-[#3f8cbf] rounded-3xl [font-family:'Lexend',Helvetica] font-bold text-sm md:text-base">
+          <Button 
+            className="h-10 md:h-12 px-4 md:px-5 bg-[#3f8cbf] rounded-3xl [font-family:'Lexend',Helvetica] font-bold text-sm md:text-base"
+            onClick={() => window.location.href = '/signup'}
+          >
             Get Started
           </Button>
         </div>
