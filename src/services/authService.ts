@@ -24,7 +24,19 @@ export class AuthService {
         password: data.password,
       })
 
-      if (authError) throw authError
+      if (authError) {
+        // Provide more user-friendly error messages
+        if (authError.message.includes('already registered')) {
+          throw new Error('An account with this email already exists. Please sign in instead.')
+        }
+        if (authError.message.includes('Password should be at least')) {
+          throw new Error('Password must be at least 6 characters long.')
+        }
+        if (authError.message.includes('Invalid email')) {
+          throw new Error('Please enter a valid email address.')
+        }
+        throw new Error(authError.message)
+      }
 
       if (authData.user) {
         // Create user profile
@@ -37,7 +49,10 @@ export class AuthService {
             grade: data.grade,
           })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+          throw new Error('Account created but profile setup failed. Please contact support.')
+        }
       }
 
       return { user: authData.user, session: authData.session }
@@ -55,7 +70,19 @@ export class AuthService {
         password: data.password,
       })
 
-      if (error) throw error
+      if (error) {
+        // Provide more user-friendly error messages
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please check your credentials and try again.')
+        }
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please check your email and click the confirmation link before signing in.')
+        }
+        if (error.message.includes('Too many requests')) {
+          throw new Error('Too many login attempts. Please wait a few minutes before trying again.')
+        }
+        throw new Error(error.message)
+      }
 
       return { user: authData.user, session: authData.session }
     } catch (error) {
@@ -102,7 +129,13 @@ export class AuthService {
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No profile found
+          return null
+        }
+        throw error
+      }
       return data
     } catch (error) {
       console.error('Get user profile error:', error)
@@ -135,7 +168,12 @@ export class AuthService {
         redirectTo: `${window.location.origin}/reset-password`,
       })
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Invalid email')) {
+          throw new Error('Please enter a valid email address.')
+        }
+        throw new Error(error.message)
+      }
     } catch (error) {
       console.error('Reset password error:', error)
       throw error

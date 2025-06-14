@@ -20,6 +20,10 @@ export const LoginPage = (): JSX.Element => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,9 +31,30 @@ export const LoginPage = (): JSX.Element => {
     setError(null);
     setLoading(true);
 
+    // Basic validation
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.password.trim()) {
+      setError('Please enter your password');
+      setLoading(false);
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
     try {
       await signIn({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
       });
       
@@ -153,6 +178,16 @@ export const LoginPage = (): JSX.Element => {
               </form>
             </CardContent>
           </Card>
+
+          {/* Demo Account Info */}
+          <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p className="text-blue-400 text-xs md:text-sm [font-family:'Lexend',Helvetica] font-medium mb-2">
+              Demo Account
+            </p>
+            <p className="text-blue-300 text-xs [font-family:'Lexend',Helvetica]">
+              If you don't have an account yet, you can create one using the "Create Account" link above, or contact support for demo credentials.
+            </p>
+          </div>
 
           {/* Social Login Options */}
           <div className="mt-4 md:mt-6">
