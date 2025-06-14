@@ -80,7 +80,7 @@ export class AuthService {
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (error) {
-        // Handle the specific case where no session exists - this is normal for unauthenticated users
+        // Handle the specific "Auth session missing!" error gracefully
         if (error.message === 'Auth session missing!') {
           return null
         }
