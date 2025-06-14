@@ -132,9 +132,23 @@ export class AuthService {
     }
   }
 
-  // Get user profile with caching
+  // Get user profile with enhanced error handling
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
+      // First check if we have a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError)
+        throw new Error('Authentication session error. Please sign in again.')
+      }
+
+      if (!session) {
+        console.error('No active session found')
+        throw new Error('No active session. Please sign in.')
+      }
+
+      // Make the profile request with better error handling
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -146,12 +160,40 @@ export class AuthService {
           // No profile found - this is okay, user can create one
           return null
         }
-        throw error
+        
+        // Log detailed error information for debugging
+        console.error('Database error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        
+        // Check for network-related errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('Network connection error. Please check your internet connection and try again.')
+        }
+        
+        throw new Error(`Database error: ${error.message}`)
       }
+      
       return data
     } catch (error) {
-      console.error('Get user profile error:', error)
-      return null // Return null instead of throwing
+      // Enhanced error logging
+      console.error('Get user profile error:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        userId: userId,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        timestamp: new Date().toISOString()
+      })
+      
+      // Re-throw the error with more context if it's a network error
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
+      }
+      
+      throw error
     }
   }
 
