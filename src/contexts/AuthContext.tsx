@@ -35,75 +35,107 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
+    let mounted = true
+
+    // Get initial session with faster timeout
     const getInitialSession = async () => {
       try {
-        const currentUser = await AuthService.getCurrentUser()
+        // Set a shorter timeout for initial load
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        )
+        
+        const sessionPromise = AuthService.getCurrentUser()
+        
+        const currentUser = await Promise.race([sessionPromise, timeoutPromise]) as User | null
+        
+        if (!mounted) return
+        
         setUser(currentUser)
         
         if (currentUser) {
-          const userProfile = await AuthService.getUserProfile(currentUser.id)
-          setProfile(userProfile)
+          // Load profile in background, don't block UI
+          AuthService.getUserProfile(currentUser.id)
+            .then(userProfile => {
+              if (mounted) setProfile(userProfile)
+            })
+            .catch(error => {
+              console.error('Error fetching user profile:', error)
+              if (mounted) setProfile(null)
+            })
         }
       } catch (error) {
         console.error('Error getting initial session:', error)
+        // Don't block the UI for session errors
+        if (mounted) {
+          setUser(null)
+          setProfile(null)
+        }
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
 
     getInitialSession()
 
-    // Listen for auth changes
+    // Listen for auth changes with optimized handling
     const { data: { subscription } } = AuthService.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return
+        
         setSession(session)
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          try {
-            const userProfile = await AuthService.getUserProfile(session.user.id)
-            setProfile(userProfile)
-          } catch (error) {
-            console.error('Error fetching user profile:', error)
-            setProfile(null)
-          }
+          // Load profile asynchronously
+          AuthService.getUserProfile(session.user.id)
+            .then(userProfile => {
+              if (mounted) setProfile(userProfile)
+            })
+            .catch(error => {
+              console.error('Error fetching user profile:', error)
+              if (mounted) setProfile(null)
+            })
         } else {
           setProfile(null)
         }
         
+        // Set loading to false immediately for auth state changes
         setLoading(false)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signUp = async (data: any) => {
-    setLoading(true)
     try {
+      setLoading(true)
       await AuthService.signUp(data)
+      // Don't set loading to false here - let auth state change handle it
     } catch (error) {
-      throw error
-    } finally {
       setLoading(false)
+      throw error
     }
   }
 
   const signIn = async (data: any) => {
-    setLoading(true)
     try {
+      setLoading(true)
       await AuthService.signIn(data)
+      // Don't set loading to false here - let auth state change handle it
     } catch (error) {
-      throw error
-    } finally {
       setLoading(false)
+      throw error
     }
   }
 
   const signOut = async () => {
-    setLoading(true)
     try {
+      setLoading(true)
       await AuthService.signOut()
       setUser(null)
       setProfile(null)

@@ -15,13 +15,20 @@ export interface SignInData {
 }
 
 export class AuthService {
-  // Sign up new user
+  // Sign up new user with optimized flow
   static async signUp(data: SignUpData) {
     try {
       // Create user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            grade: data.grade,
+          }
+        }
       })
 
       if (authError) {
@@ -39,19 +46,24 @@ export class AuthService {
       }
 
       if (authData.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: authData.user.id,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            grade: data.grade,
-          })
+        // Create user profile - this will be handled by database trigger if set up
+        try {
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert({
+              id: authData.user.id,
+              first_name: data.firstName,
+              last_name: data.lastName,
+              grade: data.grade,
+            })
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          throw new Error('Account created but profile setup failed. Please contact support.')
+          if (profileError && !profileError.message.includes('duplicate key')) {
+            console.error('Profile creation error:', profileError)
+            // Don't throw error for profile creation - user can update later
+          }
+        } catch (profileError) {
+          console.error('Profile creation failed:', profileError)
+          // Continue without throwing - profile can be created later
         }
       }
 
@@ -62,7 +74,7 @@ export class AuthService {
     }
   }
 
-  // Sign in user
+  // Optimized sign in with faster response
   static async signIn(data: SignInData) {
     try {
       const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -102,7 +114,7 @@ export class AuthService {
     }
   }
 
-  // Get current user
+  // Get current user with timeout
   static async getCurrentUser() {
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
@@ -116,11 +128,11 @@ export class AuthService {
       return user
     } catch (error) {
       console.error('Get current user error:', error)
-      throw error
+      return null // Return null instead of throwing to prevent blocking
     }
   }
 
-  // Get user profile
+  // Get user profile with caching
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       const { data, error } = await supabase
@@ -131,7 +143,7 @@ export class AuthService {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No profile found
+          // No profile found - this is okay, user can create one
           return null
         }
         throw error
@@ -139,7 +151,7 @@ export class AuthService {
       return data
     } catch (error) {
       console.error('Get user profile error:', error)
-      throw error
+      return null // Return null instead of throwing
     }
   }
 

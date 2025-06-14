@@ -58,11 +58,27 @@ export const LoginPage = (): JSX.Element => {
         password: formData.password,
       });
       
-      // Redirect to dashboard
-      window.location.href = '/';
+      // Redirect to dashboard immediately - don't wait for profile load
+      window.location.href = '/dashboard';
     } catch (error: any) {
       setError(error.message || 'An error occurred during sign in');
-    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo account quick login
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await signIn({
+        email: 'demo@myedupro.com',
+        password: 'demo123',
+      });
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      setError('Demo account not available. Please create your own account.');
       setLoading(false);
     }
   };
@@ -79,8 +95,29 @@ export const LoginPage = (): JSX.Element => {
               Welcome Back
             </h1>
             <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
-              Sign in to continue your learning journey with EduGenius
+              Sign in to continue your learning journey with MyEduPro
             </p>
+          </div>
+
+          {/* Demo Account Info */}
+          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-400 text-xs md:text-sm [font-family:'Lexend',Helvetica] font-medium mb-1">
+                  Try Demo Account
+                </p>
+                <p className="text-blue-300 text-xs [font-family:'Lexend',Helvetica]">
+                  Experience the platform instantly
+                </p>
+              </div>
+              <Button
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-2 [font-family:'Lexend',Helvetica] font-medium"
+              >
+                {loading ? 'Loading...' : 'Demo Login'}
+              </Button>
+            </div>
           </div>
 
           {/* Login Form */}
@@ -107,6 +144,7 @@ export const LoginPage = (): JSX.Element => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                    autoComplete="email"
                     className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Enter your email address"
                   />
@@ -123,6 +161,7 @@ export const LoginPage = (): JSX.Element => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    autoComplete="current-password"
                     className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Enter your password"
                   />
@@ -178,51 +217,6 @@ export const LoginPage = (): JSX.Element => {
               </form>
             </CardContent>
           </Card>
-
-          {/* Demo Account Info */}
-          <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p className="text-blue-400 text-xs md:text-sm [font-family:'Lexend',Helvetica] font-medium mb-2">
-              Demo Account
-            </p>
-            <p className="text-blue-300 text-xs [font-family:'Lexend',Helvetica]">
-              If you don't have an account yet, you can create one using the "Create Account" link above, or contact support for demo credentials.
-            </p>
-          </div>
-
-          {/* Social Login Options */}
-          <div className="mt-4 md:mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#3d4f5b]" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#0f1419] text-[#9eafbf] [font-family:'Lexend',Helvetica] text-xs md:text-sm">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                className="w-full h-10 md:h-12 bg-[#1e282d] border border-[#3d4f5b] hover:bg-[#2a3540] rounded-lg [font-family:'Lexend',Helvetica] font-medium text-white transition-colors text-xs md:text-sm"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 md:w-5 md:h-5 bg-white rounded-full" />
-                  Google
-                </div>
-              </Button>
-              <Button
-                type="button"
-                className="w-full h-10 md:h-12 bg-[#1e282d] border border-[#3d4f5b] hover:bg-[#2a3540] rounded-lg [font-family:'Lexend',Helvetica] font-medium text-white transition-colors text-xs md:text-sm"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 md:w-5 md:h-5 bg-[#1877f2] rounded-full" />
-                  Facebook
-                </div>
-              </Button>
-            </div>
-          </div>
 
           {/* Quick Access */}
           <div className="mt-6 md:mt-8 text-center">
