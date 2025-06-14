@@ -81,35 +81,35 @@ export const SignUpPage = (): JSX.Element => {
     <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
       <HeroSection />
       
-      <section className="flex items-center justify-center px-4 md:px-10 py-20 w-full bg-[#0f1419] min-h-[calc(100vh-80px)]">
+      <section className="flex items-center justify-center px-4 md:px-6 lg:px-10 py-8 md:py-20 w-full bg-[#0f1419] min-h-[calc(100vh-80px)]">
         <div className="flex flex-col max-w-[480px] w-full">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-4">
+          <div className="text-center mb-6 md:mb-8">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-3 md:mb-4">
               Create Your Account
             </h1>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base tracking-[0] leading-6">
+            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
               Join thousands of students achieving academic excellence with AI-powered learning
             </p>
           </div>
 
           {/* Sign Up Form */}
           <Card className="bg-[#1e282d] border-[#3d4f5b]">
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <CardContent className="p-4 md:p-8">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
                 {/* Error Message */}
                 {error && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-400 text-sm [font-family:'Lexend',Helvetica]">
+                  <div className="p-3 md:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-red-400 text-xs md:text-sm [font-family:'Lexend',Helvetica]">
                       {error}
                     </p>
                   </div>
                 )}
 
                 {/* Name Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                       First Name *
                     </label>
                     <input
@@ -118,12 +118,12 @@ export const SignUpPage = (): JSX.Element => {
                       value={formData.firstName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                       placeholder="Enter first name"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                       Last Name *
                     </label>
                     <input
@@ -132,7 +132,7 @@ export const SignUpPage = (): JSX.Element => {
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                       placeholder="Enter last name"
                     />
                   </div>
@@ -140,7 +140,7 @@ export const SignUpPage = (): JSX.Element => {
 
                 {/* Email */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                     Email Address *
                   </label>
                   <input
@@ -149,14 +149,14 @@ export const SignUpPage = (): JSX.Element => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Enter your email address"
                   />
                 </div>
 
                 {/* Grade Selection */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                     Current Grade/Level *
                   </label>
                   <select
@@ -164,7 +164,7 @@ export const SignUpPage = (): JSX.Element => {
                     value={formData.grade}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                   >
                     <option value="" className="text-[#9eafbf]">Select your grade/level</option>
                     {grades.map((grade) => (
@@ -177,7 +177,7 @@ export const SignUpPage = (): JSX.Element => {
 
                 {/* Password */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                     Password *
                   </label>
                   <input
@@ -186,14 +186,14 @@ export const SignUpPage = (): JSX.Element => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Create a strong password"
                   />
                 </div>
 
                 {/* Confirm Password */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
                     Confirm Password *
                   </label>
                   <input
@@ -202,7 +202,7 @@ export const SignUpPage = (): JSX.Element => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Confirm your password"
                   />
                 </div>
@@ -215,9 +215,9 @@ export const SignUpPage = (): JSX.Element => {
                     checked={formData.agreeToTerms}
                     onChange={handleInputChange}
                     required
-                    className="w-5 h-5 mt-0.5 bg-[#0f1419] border border-[#3d4f5b] rounded focus:border-[#3f8cbf] focus:outline-none"
+                    className="w-4 h-4 md:w-5 md:h-5 mt-0.5 bg-[#0f1419] border border-[#3d4f5b] rounded focus:border-[#3f8cbf] focus:outline-none"
                   />
-                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm leading-6">
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm leading-5 md:leading-6">
                     I agree to the{" "}
                     <a href="/terms" className="text-[#3f8cbf] hover:underline">
                       Terms of Service
@@ -233,11 +233,11 @@ export const SignUpPage = (): JSX.Element => {
                 <Button 
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-lg [font-family:'Lexend',Helvetica] font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-10 md:h-12 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-lg [font-family:'Lexend',Helvetica] font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Creating Account...
                     </div>
                   ) : (
@@ -247,7 +247,7 @@ export const SignUpPage = (): JSX.Element => {
 
                 {/* Login Link */}
                 <div className="text-center">
-                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm">
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm">
                     Already have an account?{" "}
                     <a href="/login" className="text-[#3f8cbf] hover:underline font-medium">
                       Sign In
@@ -259,30 +259,30 @@ export const SignUpPage = (): JSX.Element => {
           </Card>
 
           {/* Benefits Section */}
-          <div className="mt-8 text-center">
-            <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm mb-4">
+          <div className="mt-6 md:mt-8 text-center">
+            <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm mb-3 md:mb-4">
               Why join EduGenius?
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-full" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
                 <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
                   AI-Powered Learning
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-full" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
                 <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
                   24/7 Support
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-full" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
                 <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
                   Proven Results
