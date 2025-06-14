@@ -9,6 +9,14 @@ import { PricingPage } from "./screens/PricingPage/index.ts";
 import { PrivacyPolicyPage } from "./screens/PrivacyPolicyPage/index.ts";
 import { TermsOfServicePage } from "./screens/TermsOfServicePage/index.ts";
 import { SignUpPage, LoginPage } from "./screens/AuthPage/index.ts";
+import { 
+  Dashboard, 
+  AITutorPage, 
+  ProgressPage, 
+  StudyMaterialsPage, 
+  TestsPage, 
+  SettingsPage 
+} from "./screens/Dashboard/index.ts";
 
 export const App = (): JSX.Element => {
   return (
@@ -24,6 +32,12 @@ export const App = (): JSX.Element => {
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/ai-tutor" element={<AITutorPage />} />
+          <Route path="/dashboard/progress" element={<ProgressPage />} />
+          <Route path="/dashboard/materials" element={<StudyMaterialsPage />} />
+          <Route path="/dashboard/tests" element={<TestsPage />} />
+          <Route path="/dashboard/settings" element={<SettingsPage />} />
         </Routes>
       </Router>
     </AuthProvider>
