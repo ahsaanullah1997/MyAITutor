@@ -1,12 +1,20 @@
 import React from "react";
 import { Card, CardContent } from "../../../../components/ui/card";
 
-const teamMember = {
-  name: "Minhaaj Ul Islam",
-  role: "Founder & CEO",
-  description: "Visionary leader with expertise in educational technology and AI-powered learning solutions. Passionate about transforming education in Pakistan.",
-  image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400"
-};
+const teamMembers = [
+  {
+    name: "Minhaaj Ul Islam",
+    role: "Founder & CEO",
+    description: "Visionary leader with expertise in educational technology and AI-powered learning solutions. Passionate about transforming education in Pakistan.",
+    image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Usman Abbasi",
+    role: "Chief Marketing Officer & Co-Founder",
+    description: "Strategic marketing expert driving growth and brand awareness. Specializes in digital marketing and student engagement strategies.",
+    image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400"
+  }
+];
 
 export const TeamSection = (): JSX.Element => {
   return (
@@ -14,36 +22,38 @@ export const TeamSection = (): JSX.Element => {
       <div className="flex flex-col max-w-[1200px] w-full">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px] mb-4">
-            Meet Our Founder
+            Meet Our Founders
           </h2>
           <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
             Leading the mission to transform education in Pakistan through innovative AI-powered learning solutions.
           </p>
         </div>
 
-        <div className="flex justify-center mb-12 md:mb-16">
-          <Card className="bg-[#1e282d] border-[#3d4f5b] hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-white/10 max-w-[400px] w-full">
-            <CardContent className="p-6 md:p-8 flex flex-col gap-4 md:gap-6 text-center">
-              <div className="w-24 h-24 md:w-32 md:h-32 mx-auto rounded-full overflow-hidden">
-                <img 
-                  src={teamMember.image} 
-                  alt={teamMember.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col gap-2 md:gap-3">
-                <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg md:text-xl tracking-[0] leading-6">
-                  {teamMember.name}
-                </h3>
-                <p className="[font-family:'Lexend',Helvetica] font-medium text-[#3f8cbf] text-sm md:text-base tracking-[0] leading-5">
-                  {teamMember.role}
-                </p>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
-                  {teamMember.description}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-12 md:mb-16 max-w-[800px] mx-auto">
+          {teamMembers.map((member, index) => (
+            <Card key={index} className="bg-[#1e282d] border-[#3d4f5b] hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-white/10">
+              <CardContent className="p-6 md:p-8 flex flex-col gap-4 md:gap-6 text-center">
+                <div className="w-24 h-24 md:w-32 md:h-32 mx-auto rounded-full overflow-hidden">
+                  <img 
+                    src={member.image} 
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col gap-2 md:gap-3">
+                  <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg md:text-xl tracking-[0] leading-6">
+                    {member.name}
+                  </h3>
+                  <p className="[font-family:'Lexend',Helvetica] font-medium text-[#3f8cbf] text-sm md:text-base tracking-[0] leading-5">
+                    {member.role}
+                  </p>
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
+                    {member.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Stats Section */}
