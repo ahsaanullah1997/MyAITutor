@@ -37,7 +37,7 @@ export const HeroSection = (): JSX.Element => {
   return (
     <header className="flex items-center justify-between px-4 md:px-10 py-3 bg-[#0f1419] border-b border-[#1e282d] w-full relative">
       {/* Logo section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.href = '/'}>
         <div className="flex items-start">
           <div className="w-4 h-4 bg-[url(/vector---0.svg)] bg-[100%_100%]" />
         </div>

@@ -75,7 +75,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b]">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b] cursor-pointer" onClick={() => window.location.href = '/'}>
           <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center">
             <div className="w-3 h-3 bg-white rounded-full" />
           </div>
