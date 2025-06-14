@@ -78,7 +78,7 @@ export const WhyChooseSection = (): JSX.Element => {
 
         {/* Why Choose MyEduPro? Section */}
         <div className="flex flex-col items-start gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10 w-full">
-          <div className="gap-4 flex flex-col items-start w-full">
+          <div className="gap-4 flex flex-col items-center w-full text-center">
             <div className="max-w-[720px]">
               <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
                 Why Choose MyEduPro?
