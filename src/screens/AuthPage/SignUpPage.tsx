@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import { useAuth } from "../../contexts/AuthContext";
 
 export const SignUpPage = (): JSX.Element => {
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -13,6 +15,8 @@ export const SignUpPage = (): JSX.Element => {
     grade: '',
     agreeToTerms: false
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -22,10 +26,44 @@ export const SignUpPage = (): JSX.Element => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Sign up form submitted:', formData);
+    setError(null);
+
+    // Validation
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (!formData.agreeToTerms) {
+      setError("Please agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await signUp({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        grade: formData.grade,
+      });
+      
+      // Redirect to dashboard or show success message
+      window.location.href = '/';
+    } catch (error: any) {
+      setError(error.message || 'An error occurred during sign up');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const grades = [
@@ -59,6 +97,15 @@ export const SignUpPage = (): JSX.Element => {
           <Card className="bg-[#1e282d] border-[#3d4f5b]">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                {/* Error Message */}
+                {error && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-red-400 text-sm [font-family:'Lexend',Helvetica]">
+                      {error}
+                    </p>
+                  </div>
+                )}
+
                 {/* Name Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
@@ -185,9 +232,17 @@ export const SignUpPage = (): JSX.Element => {
                 {/* Submit Button */}
                 <Button 
                   type="submit"
-                  className="w-full h-12 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-lg [font-family:'Lexend',Helvetica] font-bold text-white transition-colors"
+                  disabled={loading}
+                  className="w-full h-12 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-lg [font-family:'Lexend',Helvetica] font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Account
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Creating Account...
+                    </div>
+                  ) : (
+                    'Create Account'
+                  )}
                 </Button>
 
                 {/* Login Link */}
