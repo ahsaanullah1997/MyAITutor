@@ -3,29 +3,24 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+// More detailed error checking
+if (!supabaseUrl) {
+  console.error('VITE_SUPABASE_URL is missing from environment variables')
+  console.log('Available env vars:', import.meta.env)
+  throw new Error('VITE_SUPABASE_URL environment variable is required')
+}
+
+if (!supabaseAnonKey) {
+  console.error('VITE_SUPABASE_ANON_KEY is missing from environment variables')
+  console.log('Available env vars:', import.meta.env)
+  throw new Error('VITE_SUPABASE_ANON_KEY environment variable is required')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  },
-  global: {
-    headers: {
-      'x-client-info': 'myedupro-web'
-    }
-  },
-  db: {
-    schema: 'public'
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
+    detectSessionInUrl: true
   }
 })
 
