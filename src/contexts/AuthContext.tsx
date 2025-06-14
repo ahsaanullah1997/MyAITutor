@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setProfile(userProfile)
           } catch (error) {
             console.error('Error fetching user profile:', error)
+            setProfile(null)
           }
         } else {
           setProfile(null)
@@ -104,6 +105,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     try {
       await AuthService.signOut()
+      setUser(null)
+      setProfile(null)
+      setSession(null)
     } catch (error) {
       throw error
     } finally {

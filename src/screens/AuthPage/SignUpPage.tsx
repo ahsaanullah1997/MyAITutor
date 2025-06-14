@@ -24,20 +24,56 @@ export const SignUpPage = (): JSX.Element => {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match");
+    // Enhanced validation
+    if (!formData.firstName.trim()) {
+      setError("Please enter your first name");
+      return;
+    }
+
+    if (!formData.lastName.trim()) {
+      setError("Please enter your last name");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!formData.grade) {
+      setError("Please select your grade/level");
+      return;
+    }
+
+    if (!formData.password.trim()) {
+      setError("Please enter a password");
       return;
     }
 
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
       return;
     }
 
@@ -50,15 +86,15 @@ export const SignUpPage = (): JSX.Element => {
 
     try {
       await signUp({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         grade: formData.grade,
       });
       
-      // Redirect to dashboard or show success message
-      window.location.href = '/';
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
     } catch (error: any) {
       setError(error.message || 'An error occurred during sign up');
     } finally {
@@ -261,7 +297,7 @@ export const SignUpPage = (): JSX.Element => {
           {/* Benefits Section */}
           <div className="mt-6 md:mt-8 text-center">
             <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm mb-3 md:mb-4">
-              Why join EduGenius?
+              Why join MyEduPro?
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               <div className="flex flex-col items-center gap-2">
