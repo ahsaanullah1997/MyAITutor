@@ -1,0 +1,1 @@
+export { AboutHeroSection } from "./AboutHeroSection.tsx";

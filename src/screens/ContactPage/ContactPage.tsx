@@ -1,0 +1,256 @@
+import React, { useState } from "react";
+import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { CoursesSection } from "../StitchDesign/sections/CoursesSection/index.ts";
+
+export const ContactPage = (): JSX.Element => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission here
+    console.log('Form submitted:', formData);
+  };
+
+  const contactInfo = [
+    {
+      icon: "/vector---0.svg",
+      title: "Email Us",
+      description: "Get in touch via email",
+      contact: "support@edugenius.pk"
+    },
+    {
+      icon: "/vector---0-1.svg",
+      title: "Call Us",
+      description: "Speak with our team",
+      contact: "+92 300 1234567"
+    },
+    {
+      icon: "/vector---0-2.svg",
+      title: "Visit Us",
+      description: "Come to our office",
+      contact: "Lahore, Pakistan"
+    },
+    {
+      icon: "/vector---0-3.svg",
+      title: "Support Hours",
+      description: "We're here to help",
+      contact: "24/7 Available"
+    }
+  ];
+
+  return (
+    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+      <HeroSection />
+      
+      <section className="flex items-start justify-center px-4 md:px-10 lg:px-40 py-20 w-full bg-[#0f1419]">
+        <div className="flex flex-col max-w-[1200px] w-full">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-4xl md:text-5xl lg:text-6xl tracking-[-2.00px] leading-[1.1] mb-6">
+              Get in Touch
+            </h1>
+            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-lg tracking-[0] leading-7 max-w-[600px] mx-auto">
+              Have questions about EduGenius? We're here to help you succeed in your academic journey.
+            </p>
+          </div>
+
+          {/* Contact Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {contactInfo.map((info, index) => (
+              <Card key={index} className="bg-[#1e282d] border-[#3d4f5b] hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-white/10">
+                <CardContent className="p-6 flex flex-col gap-4 text-center">
+                  <div className="w-8 h-8 mx-auto">
+                    <div className={`w-full h-full bg-[url(${info.icon})] bg-[100%_100%]`} />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg tracking-[0] leading-6">
+                      {info.title}
+                    </h3>
+                    <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm tracking-[0] leading-5">
+                      {info.description}
+                    </p>
+                    <p className="[font-family:'Lexend',Helvetica] font-medium text-[#3f8cbf] text-sm tracking-[0] leading-5">
+                      {info.contact}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Contact Form */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div className="flex flex-col gap-6">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-3xl md:text-4xl tracking-[-1.00px] leading-[45px]">
+                Send us a Message
+              </h2>
+              <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base tracking-[0] leading-6">
+                Fill out the form below and we'll get back to you as soon as possible. Our team is dedicated to helping you achieve your academic goals.
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm">
+                    Quick response within 24 hours
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm">
+                    Personalized support for your needs
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
+                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm">
+                    Expert guidance from our team
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Card className="bg-[#1e282d] border-[#3d4f5b]">
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Subject *
+                    </label>
+                    <input
+                      type="text"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica]"
+                      placeholder="What's this about?"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Message *
+                    </label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      rows={5}
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors resize-none [font-family:'Lexend',Helvetica]"
+                      placeholder="Tell us how we can help you..."
+                    />
+                  </div>
+
+                  <Button 
+                    type="submit"
+                    className="w-full h-12 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-lg [font-family:'Lexend',Helvetica] font-bold text-white transition-colors"
+                  >
+                    Send Message
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-20">
+            <div className="text-center mb-12">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-3xl md:text-4xl tracking-[-1.00px] leading-[45px] mb-4">
+                Frequently Asked Questions
+              </h2>
+              <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
+                Find quick answers to common questions about EduGenius.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  question: "How does EduGenius work?",
+                  answer: "EduGenius uses AI-powered tutoring to provide personalized learning experiences tailored to your academic needs and learning style."
+                },
+                {
+                  question: "What subjects do you cover?",
+                  answer: "We cover all major subjects for Metric, FSc, O-levels, A-levels, and competitive exam preparation including MDCAT and ECAT."
+                },
+                {
+                  question: "Is there a free trial available?",
+                  answer: "Yes! We offer a 7-day free trial so you can experience the power of AI-driven learning before committing to a plan."
+                },
+                {
+                  question: "How can I get technical support?",
+                  answer: "Our support team is available 24/7 through email, chat, or phone. You can also access our comprehensive help center."
+                }
+              ].map((faq, index) => (
+                <Card key={index} className="bg-[#1e282d] border-[#3d4f5b]">
+                  <CardContent className="p-6">
+                    <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-3">
+                      {faq.question}
+                    </h3>
+                    <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm leading-6">
+                      {faq.answer}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <CoursesSection />
+    </main>
+  );
+};
