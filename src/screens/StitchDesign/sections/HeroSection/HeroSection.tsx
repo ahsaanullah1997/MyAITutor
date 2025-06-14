@@ -37,7 +37,7 @@ export const HeroSection = (): JSX.Element => {
   return (
     <header className="flex items-center justify-between px-4 md:px-10 py-3 bg-[#0f1419] border-b border-[#1e282d] w-full relative">
       {/* Logo section */}
-      <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.href = '/'}>
+      <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.href = user ? '/dashboard' : '/'}>
         <div className="flex items-start">
           <div className="w-4 h-4 bg-[url(/vector---0.svg)] bg-[100%_100%]" />
         </div>
@@ -71,9 +71,12 @@ export const HeroSection = (): JSX.Element => {
             <div className="w-4 h-4 border-2 border-[#3f8cbf] border-t-transparent rounded-full animate-spin"></div>
           ) : user ? (
             <div className="flex items-center gap-3">
-              <span className="text-white text-sm font-['Lexend',Helvetica] hidden xl:block">
-                Welcome back!
-              </span>
+              <Button 
+                className="min-w-[100px] h-10 px-4 py-0 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[20px] font-bold text-white text-sm font-['Lexend',Helvetica] transition-colors"
+                onClick={() => window.location.href = '/dashboard'}
+              >
+                Dashboard
+              </Button>
               <Button 
                 className="min-w-[70px] h-10 px-4 py-0 bg-transparent border border-[#3f8cbf] text-[#3f8cbf] hover:bg-[#3f8cbf] hover:text-white rounded-[20px] font-bold text-sm font-['Lexend',Helvetica] transition-colors"
                 onClick={handleSignOut}
@@ -112,6 +115,15 @@ export const HeroSection = (): JSX.Element => {
           </Button>
         )}
         
+        {!loading && user && (
+          <Button 
+            className="h-8 px-3 py-0 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[16px] font-bold text-white text-xs font-['Lexend',Helvetica] transition-colors"
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            Dashboard
+          </Button>
+        )}
+        
         <button
           onClick={toggleMobileMenu}
           className="flex flex-col justify-center items-center w-8 h-8 space-y-1"
@@ -147,9 +159,15 @@ export const HeroSection = (): JSX.Element => {
                 </div>
               ) : user ? (
                 <div className="flex flex-col gap-3">
-                  <span className="text-white text-sm font-['Lexend',Helvetica] text-center">
-                    Welcome back!
-                  </span>
+                  <Button 
+                    className="w-full h-10 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[20px] font-bold text-white text-sm font-['Lexend',Helvetica] transition-colors"
+                    onClick={() => {
+                      window.location.href = '/dashboard';
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Go to Dashboard
+                  </Button>
                   <Button 
                     className="w-full h-10 bg-transparent border border-[#3f8cbf] text-[#3f8cbf] hover:bg-[#3f8cbf] hover:text-white rounded-[20px] font-bold text-sm font-['Lexend',Helvetica] transition-colors"
                     onClick={handleSignOut}

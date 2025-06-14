@@ -11,42 +11,45 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const { user, profile, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Get current page from URL
+  const currentPath = window.location.pathname;
+
   const navigationItems = [
     { 
       name: "Dashboard", 
       href: "/dashboard", 
       icon: "📊",
-      active: true 
+      active: currentPath === "/dashboard"
     },
     { 
       name: "AI Tutor", 
       href: "/dashboard/ai-tutor", 
       icon: "🤖",
-      active: false 
+      active: currentPath === "/dashboard/ai-tutor"
     },
     { 
       name: "Progress", 
       href: "/dashboard/progress", 
       icon: "📈",
-      active: false 
+      active: currentPath === "/dashboard/progress"
     },
     { 
       name: "Study Materials", 
       href: "/dashboard/materials", 
       icon: "📚",
-      active: false 
+      active: currentPath === "/dashboard/materials"
     },
     { 
       name: "Tests & Quizzes", 
       href: "/dashboard/tests", 
       icon: "📝",
-      active: false 
+      active: currentPath === "/dashboard/tests"
     },
     { 
       name: "Settings", 
       href: "/dashboard/settings", 
       icon: "⚙️",
-      active: false 
+      active: currentPath === "/dashboard/settings"
     }
   ];
 
@@ -57,6 +60,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     } catch (error) {
       console.error('Sign out error:', error);
     }
+  };
+
+  // Get page title based on current path
+  const getPageTitle = () => {
+    const item = navigationItems.find(item => item.active);
+    return item ? item.name : "Dashboard";
   };
 
   return (
@@ -75,7 +84,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b] cursor-pointer" onClick={() => window.location.href = '/'}>
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b] cursor-pointer" onClick={() => window.location.href = '/dashboard'}>
           <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center">
             <div className="w-3 h-3 bg-white rounded-full" />
           </div>
@@ -156,13 +165,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
             {/* Page Title */}
             <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl">
-              Dashboard
+              {getPageTitle()}
             </h1>
 
             {/* Quick Actions */}
             <div className="flex items-center gap-2">
-              <Button className="hidden sm:flex bg-[#3f8cbf] hover:bg-[#2d6a94] text-white rounded-lg px-4 py-2 [font-family:'Lexend',Helvetica] font-medium text-sm">
-                Start Learning
+              <Button 
+                className="hidden sm:flex bg-[#3f8cbf] hover:bg-[#2d6a94] text-white rounded-lg px-4 py-2 [font-family:'Lexend',Helvetica] font-medium text-sm"
+                onClick={() => window.location.href = '/dashboard/ai-tutor'}
+              >
+                Ask AI Tutor
               </Button>
               <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
