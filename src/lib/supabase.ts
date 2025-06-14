@@ -30,12 +30,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Add timeout configuration for auth operations
+    flowType: 'pkce'
   },
   global: {
     headers: {
       'Content-Type': 'application/json',
     },
+    // Add fetch configuration with timeout
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(30000) // 30 second timeout for all requests
+      })
+    }
   },
   db: {
     schema: 'public',
@@ -47,17 +56,36 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 })
 
-// Test connection on initialization
+// Test connection on initialization with better error handling
 const testConnection = async () => {
   try {
-    const { data, error } = await supabase.from('user_profiles').select('count').limit(1)
+    console.log('Testing Supabase connection...')
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for test
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('count')
+      .limit(1)
+      .abortSignal(controller.signal)
+    
+    clearTimeout(timeoutId)
+    
     if (error) {
-      console.error('Supabase connection test failed:', error)
+      console.error('Supabase connection test failed:', error.message)
+      console.error('Please verify your Supabase URL and API key in the .env file')
     } else {
       console.log('Supabase connection test successful')
     }
   } catch (error) {
-    console.error('Supabase connection test error:', error)
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.error('Supabase connection test timed out - check your network connection and Supabase project status')
+      } else {
+        console.error('Supabase connection test error:', error.message)
+      }
+    }
+    console.error('Please verify your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the .env file')
   }
 }
 

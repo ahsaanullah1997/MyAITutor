@@ -66,42 +66,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // Get initial session with increased timeout
+    // Get initial session with better error handling and shorter timeout
     const getInitialSession = async () => {
       try {
         setError(null)
         console.log('Getting initial session...')
         
-        // Increased timeout from 30000ms to 60000ms for better reliability
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 60000)
-        )
+        // Reduced timeout from 60000ms to 15000ms (15 seconds) for faster failure detection
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => {
+          controller.abort()
+        }, 15000)
         
-        const sessionPromise = AuthService.getCurrentUser()
-        
-        const currentUser = await Promise.race([sessionPromise, timeoutPromise]) as User | null
-        
-        if (!mounted) return
-        
-        console.log('Initial session result:', currentUser ? 'User found' : 'No user')
-        setUser(currentUser)
-        
-        if (currentUser) {
-          // Load profile in background, don't block UI
-          await loadUserProfile(currentUser.id)
+        try {
+          const currentUser = await AuthService.getCurrentUser()
+          clearTimeout(timeoutId)
+          
+          if (!mounted) return
+          
+          console.log('Initial session result:', currentUser ? 'User found' : 'No user')
+          setUser(currentUser)
+          
+          if (currentUser) {
+            // Load profile in background, don't block UI
+            await loadUserProfile(currentUser.id)
+          }
+        } catch (authError) {
+          clearTimeout(timeoutId)
+          throw authError
         }
       } catch (error) {
         console.error('Error getting initial session:', error)
         const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
         
-        // Don't block the UI for session errors, but show the error
         if (mounted) {
           setUser(null)
           setProfile(null)
           
-          // Only set error for non-timeout issues
-          if (!errorMessage.includes('timeout')) {
-            setError(errorMessage)
+          // Provide more specific error messages
+          if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
+            setError('Connection timeout - please check your internet connection and Supabase configuration')
+          } else if (errorMessage.includes('fetch')) {
+            setError('Network error - unable to connect to authentication service')
+          } else {
+            setError('Authentication service unavailable - please try again later')
           }
         }
       } finally {
