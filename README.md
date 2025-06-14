@@ -28,13 +28,7 @@ Content Processing: TensorFlow/PyTorch for extracting key concepts from PDFs/vid
 
 Cloud: AWS/Google Cloud for hosting, Firebase for real-time chat.
 
-Database: MongoDB for flexible storage of user profiles and learning data.
-
-Installation
-
-Clone the repository:
-
-git clone https://github.com/yourusername/ai-tutor-pakistan.git
+Database: Supabase for flexible storage of user profiles and learning data.
 
 Navigate to the project directory:
 
