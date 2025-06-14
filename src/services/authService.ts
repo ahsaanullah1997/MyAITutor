@@ -132,9 +132,13 @@ export class AuthService {
     }
   }
 
-  // Get user profile with enhanced error handling
+  // Get user profile with enhanced error handling and connection diagnostics
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
+      // Enhanced connection diagnostics
+      console.log('Attempting to fetch user profile for:', userId)
+      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+      
       // First check if we have a valid session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
@@ -148,49 +152,79 @@ export class AuthService {
         throw new Error('No active session. Please sign in.')
       }
 
-      // Make the profile request with better error handling
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      console.log('Session valid, making database request...')
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No profile found - this is okay, user can create one
-          return null
+      // Make the profile request with timeout and better error handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .abortSignal(controller.signal)
+          .single()
+
+        clearTimeout(timeoutId)
+
+        if (error) {
+          console.error('Database query error:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          })
+
+          if (error.code === 'PGRST116') {
+            // No profile found - this is okay, user can create one
+            console.log('No profile found for user, returning null')
+            return null
+          }
+          
+          // Check for specific error types
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
+          }
+          
+          if (error.message.includes('JWT')) {
+            throw new Error('Authentication token expired. Please sign in again.')
+          }
+          
+          throw new Error(`Database error: ${error.message}`)
         }
         
-        // Log detailed error information for debugging
-        console.error('Database error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
+        console.log('Profile fetched successfully')
+        return data
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
         
-        // Check for network-related errors
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          throw new Error('Network connection error. Please check your internet connection and try again.')
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your internet connection and try again.')
         }
         
-        throw new Error(`Database error: ${error.message}`)
+        throw fetchError
       }
-      
-      return data
     } catch (error) {
-      // Enhanced error logging
+      // Enhanced error logging with more context
       console.error('Get user profile error:', {
         error: error,
         message: error instanceof Error ? error.message : 'Unknown error',
         userId: userId,
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        online: navigator.onLine
       })
+      
+      // Check if we're offline
+      if (!navigator.onLine) {
+        throw new Error('You appear to be offline. Please check your internet connection and try again.')
+      }
       
       // Re-throw the error with more context if it's a network error
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
+        throw new Error('Unable to connect to the database. This might be due to:\n1. Internet connection issues\n2. Supabase service being temporarily unavailable\n3. Incorrect Supabase configuration\n\nPlease check your connection and try again.')
       }
       
       throw error

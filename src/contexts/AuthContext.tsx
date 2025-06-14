@@ -8,10 +8,12 @@ interface AuthContextType {
   profile: UserProfile | null
   session: Session | null
   loading: boolean
+  error: string | null
   signUp: (data: any) => Promise<void>
   signIn: (data: any) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>
+  retryProfileLoad: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -33,6 +35,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      setError(null)
+      console.log('Loading profile for user:', userId)
+      const userProfile = await AuthService.getUserProfile(userId)
+      setProfile(userProfile)
+      console.log('Profile loaded successfully:', userProfile)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
+      setError(errorMessage)
+      setProfile(null)
+      
+      // Show user-friendly error notification
+      if (errorMessage.includes('connection') || errorMessage.includes('fetch')) {
+        console.warn('Connection issue detected. Profile will be retried on next interaction.')
+      }
+    }
+  }
+
+  const retryProfileLoad = async () => {
+    if (user) {
+      await loadUserProfile(user.id)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -40,9 +69,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session with faster timeout
     const getInitialSession = async () => {
       try {
+        setError(null)
+        console.log('Getting initial session...')
+        
         // Set a shorter timeout for initial load
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
         )
         
         const sessionPromise = AuthService.getCurrentUser()
@@ -51,25 +83,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (!mounted) return
         
+        console.log('Initial session result:', currentUser ? 'User found' : 'No user')
         setUser(currentUser)
         
         if (currentUser) {
           // Load profile in background, don't block UI
-          AuthService.getUserProfile(currentUser.id)
-            .then(userProfile => {
-              if (mounted) setProfile(userProfile)
-            })
-            .catch(error => {
-              console.error('Error fetching user profile:', error)
-              if (mounted) setProfile(null)
-            })
+          await loadUserProfile(currentUser.id)
         }
       } catch (error) {
         console.error('Error getting initial session:', error)
-        // Don't block the UI for session errors
+        const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
+        
+        // Don't block the UI for session errors, but show the error
         if (mounted) {
           setUser(null)
           setProfile(null)
+          
+          // Only set error for non-timeout issues
+          if (!errorMessage.includes('timeout')) {
+            setError(errorMessage)
+          }
         }
       } finally {
         if (mounted) setLoading(false)
@@ -83,19 +116,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (event, session) => {
         if (!mounted) return
         
+        console.log('Auth state change:', event, session ? 'Session exists' : 'No session')
+        setError(null) // Clear errors on auth state change
         setSession(session)
         setUser(session?.user ?? null)
         
         if (session?.user) {
           // Load profile asynchronously
-          AuthService.getUserProfile(session.user.id)
-            .then(userProfile => {
-              if (mounted) setProfile(userProfile)
-            })
-            .catch(error => {
-              console.error('Error fetching user profile:', error)
-              if (mounted) setProfile(null)
-            })
+          await loadUserProfile(session.user.id)
         } else {
           setProfile(null)
         }
@@ -114,10 +142,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (data: any) => {
     try {
       setLoading(true)
+      setError(null)
       await AuthService.signUp(data)
       // Don't set loading to false here - let auth state change handle it
     } catch (error) {
       setLoading(false)
+      const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
+      setError(errorMessage)
       throw error
     }
   }
@@ -125,10 +156,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (data: any) => {
     try {
       setLoading(true)
+      setError(null)
       await AuthService.signIn(data)
       // Don't set loading to false here - let auth state change handle it
     } catch (error) {
       setLoading(false)
+      const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
+      setError(errorMessage)
       throw error
     }
   }
@@ -136,11 +170,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     try {
       setLoading(true)
+      setError(null)
       await AuthService.signOut()
       setUser(null)
       setProfile(null)
       setSession(null)
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Sign out failed'
+      setError(errorMessage)
       throw error
     } finally {
       setLoading(false)
@@ -151,9 +188,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) throw new Error('No user logged in')
     
     try {
+      setError(null)
       const updatedProfile = await AuthService.updateUserProfile(user.id, updates)
       setProfile(updatedProfile)
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
+      setError(errorMessage)
       throw error
     }
   }
@@ -163,10 +203,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     profile,
     session,
     loading,
+    error,
     signUp,
     signIn,
     signOut,
     updateProfile,
+    retryProfileLoad,
   }
 
   return (
