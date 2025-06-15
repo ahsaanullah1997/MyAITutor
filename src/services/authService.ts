@@ -7,6 +7,8 @@ export interface SignUpData {
   firstName: string
   lastName: string
   grade: string
+  board?: string
+  area?: string
 }
 
 export interface SignInData {
@@ -27,6 +29,8 @@ export class AuthService {
             first_name: data.firstName,
             last_name: data.lastName,
             grade: data.grade,
+            board: data.board || '',
+            area: data.area || '',
           }
         }
       })
@@ -61,6 +65,8 @@ export class AuthService {
               first_name: data.firstName,
               last_name: data.lastName,
               grade: data.grade,
+              board: data.board || '',
+              area: data.area || '',
             })
 
           if (profileError && !profileError.message.includes('duplicate key') && !profileError.message.includes('not configured')) {

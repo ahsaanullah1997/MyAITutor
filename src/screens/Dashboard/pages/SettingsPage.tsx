@@ -11,7 +11,8 @@ export const SettingsPage = (): JSX.Element => {
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     grade: profile?.grade || '',
-    board: profile?.board || '', // Add board field
+    board: profile?.board || '',
+    area: profile?.area || '',
     notifications: true,
     emailUpdates: true,
     studyReminders: true,
@@ -96,6 +97,26 @@ export const SettingsPage = (): JSX.Element => {
     "Baluchistan Board"
   ];
 
+  // Area options for specific boards
+  const boardAreas = {
+    "Punjab Board": [
+      "(BISE) Lahore",
+      "BISE Gujranwala",
+      "BISE Faisalabad",
+      "BISE Multan",
+      "BISE Bahawalpur",
+      "BISE Dera Ghazi Khan",
+      "BISE Rawalpindi"
+    ],
+    "Sindh Board": [
+      "BISE Karachi",
+      "BISE Hyderabad",
+      "BISE Sukkur",
+      "BISE Larkana",
+      "BISE Mirpurkhas"
+    ]
+  };
+
   // Check if selected grade requires board selection
   const requiresBoardSelection = (grade: string) => {
     return [
@@ -106,6 +127,11 @@ export const SettingsPage = (): JSX.Element => {
     ].includes(grade);
   };
 
+  // Check if selected board requires area selection
+  const requiresAreaSelection = (board: string) => {
+    return ["Punjab Board", "Sindh Board"].includes(board);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => {
@@ -114,9 +140,15 @@ export const SettingsPage = (): JSX.Element => {
         [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
       };
       
-      // Clear board selection if grade doesn't require it
+      // Clear board and area selection if grade doesn't require it
       if (name === 'grade' && !requiresBoardSelection(value)) {
         newData.board = '';
+        newData.area = '';
+      }
+      
+      // Clear area selection if board doesn't require it
+      if (name === 'board' && !requiresAreaSelection(value)) {
+        newData.area = '';
       }
       
       return newData;
@@ -135,12 +167,19 @@ export const SettingsPage = (): JSX.Element => {
       return;
     }
 
+    if (requiresAreaSelection(formData.board) && !formData.area) {
+      setMessage({ type: 'error', text: 'Please select your area for the selected board.' });
+      setLoading(false);
+      return;
+    }
+
     try {
       await updateProfile({
         first_name: formData.firstName,
         last_name: formData.lastName,
         grade: formData.grade,
-        board: formData.board, // Include board in update
+        board: formData.board,
+        area: formData.area,
       });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
@@ -403,6 +442,32 @@ export const SettingsPage = (): JSX.Element => {
                     </select>
                     <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
                       Select the education board you're studying under for curriculum-specific content.
+                    </p>
+                  </div>
+                )}
+
+                {/* Area Selection - Only show for Punjab and Sindh boards */}
+                {requiresAreaSelection(formData.board) && (
+                  <div className="space-y-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Area/Region <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      name="area"
+                      value={formData.area}
+                      onChange={handleInputChange}
+                      required={requiresAreaSelection(formData.board)}
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                    >
+                      <option value="">Select your area</option>
+                      {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
+                        <option key={area} value={area} className="text-white bg-[#0f1419]">
+                          {area}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                      Select your specific area for region-specific exam patterns and content.
                     </p>
                   </div>
                 )}

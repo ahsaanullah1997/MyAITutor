@@ -160,6 +160,8 @@ export interface UserProfile {
   first_name: string
   last_name: string
   grade: string
+  board?: string
+  area?: string
   created_at: string
   updated_at: string
 }

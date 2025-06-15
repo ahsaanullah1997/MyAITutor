@@ -13,6 +13,8 @@ export const SignUpPage = (): JSX.Element => {
     password: '',
     confirmPassword: '',
     grade: '',
+    board: '',
+    area: '',
     agreeToTerms: false
   });
   const [loading, setLoading] = useState(false);
@@ -20,10 +22,26 @@ export const SignUpPage = (): JSX.Element => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      };
+      
+      // Clear board and area selection if grade doesn't require it
+      if (name === 'grade' && !requiresBoardSelection(value)) {
+        newData.board = '';
+        newData.area = '';
+      }
+      
+      // Clear area selection if board doesn't require it
+      if (name === 'board' && !requiresAreaSelection(value)) {
+        newData.area = '';
+      }
+      
+      return newData;
+    });
+    
     // Clear error when user starts typing
     if (error) {
       setError(null);
@@ -62,6 +80,18 @@ export const SignUpPage = (): JSX.Element => {
       return;
     }
 
+    // Board validation for Metric and FSc grades
+    if (requiresBoardSelection(formData.grade) && !formData.board) {
+      setError("Please select your education board");
+      return;
+    }
+
+    // Area validation for Punjab and Sindh boards
+    if (requiresAreaSelection(formData.board) && !formData.area) {
+      setError("Please select your area/region");
+      return;
+    }
+
     if (!formData.password.trim()) {
       setError("Please enter a password");
       return;
@@ -91,6 +121,8 @@ export const SignUpPage = (): JSX.Element => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         grade: formData.grade,
+        board: formData.board,
+        area: formData.area,
       });
       
       // Redirect to dashboard
@@ -112,6 +144,51 @@ export const SignUpPage = (): JSX.Element => {
     "MDCAT Preparation",
     "ECAT Preparation"
   ];
+
+  // Board options for Pakistani education system
+  const boards = [
+    "Federal Board",
+    "Punjab Board", 
+    "Sindh Board",
+    "Khyber Pakhtunkhwa Board",
+    "AJK Mirpur Board",
+    "Baluchistan Board"
+  ];
+
+  // Area options for specific boards
+  const boardAreas = {
+    "Punjab Board": [
+      "(BISE) Lahore",
+      "BISE Gujranwala",
+      "BISE Faisalabad",
+      "BISE Multan",
+      "BISE Bahawalpur",
+      "BISE Dera Ghazi Khan",
+      "BISE Rawalpindi"
+    ],
+    "Sindh Board": [
+      "BISE Karachi",
+      "BISE Hyderabad",
+      "BISE Sukkur",
+      "BISE Larkana",
+      "BISE Mirpurkhas"
+    ]
+  };
+
+  // Check if selected grade requires board selection
+  const requiresBoardSelection = (grade: string) => {
+    return [
+      "Class 9 (Metric)",
+      "Class 10 (Metric)", 
+      "Class 11 (FSc/FA)",
+      "Class 12 (FSc/FA)"
+    ].includes(grade);
+  };
+
+  // Check if selected board requires area selection
+  const requiresAreaSelection = (board: string) => {
+    return ["Punjab Board", "Sindh Board"].includes(board);
+  };
 
   return (
     <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
@@ -210,6 +287,52 @@ export const SignUpPage = (): JSX.Element => {
                     ))}
                   </select>
                 </div>
+
+                {/* Board Selection - Only show for Metric and FSc grades */}
+                {requiresBoardSelection(formData.grade) && (
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                      Education Board *
+                    </label>
+                    <select
+                      name="board"
+                      value={formData.board}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                    >
+                      <option value="" className="text-[#9eafbf]">Select your board</option>
+                      {boards.map((board) => (
+                        <option key={board} value={board} className="text-white bg-[#0f1419]">
+                          {board}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Area Selection - Only show for Punjab and Sindh boards */}
+                {requiresAreaSelection(formData.board) && (
+                  <div className="flex flex-col gap-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                      Area/Region *
+                    </label>
+                    <select
+                      name="area"
+                      value={formData.area}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                    >
+                      <option value="" className="text-[#9eafbf]">Select your area</option>
+                      {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
+                        <option key={area} value={area} className="text-white bg-[#0f1419]">
+                          {area}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Password */}
                 <div className="flex flex-col gap-2">
