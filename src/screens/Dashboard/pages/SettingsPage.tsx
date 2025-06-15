@@ -45,7 +45,7 @@ export const SettingsPage = (): JSX.Element => {
     },
     {
       name: "Pro",
-      price: "PKR 2,999",
+      price: "PKR 799",
       period: "per month",
       features: [
         "Unlimited AI tutoring sessions",
@@ -59,17 +59,17 @@ export const SettingsPage = (): JSX.Element => {
       popular: true
     },
     {
-      name: "Premium",
-      price: "PKR 4,999",
-      period: "per month",
+      name: "Custom",
+      price: "Contact Us",
+      period: "for pricing",
       features: [
         "Everything in Pro",
-        "1-on-1 expert sessions",
-        "MDCAT/ECAT specialized prep",
-        "Custom learning paths",
-        "Advanced AI recommendations",
-        "Detailed performance reports",
-        "Parent/teacher dashboard"
+        "Bulk student accounts",
+        "Institution dashboard",
+        "Custom curriculum integration",
+        "Dedicated account manager",
+        "Teacher training & support",
+        "Advanced analytics & reporting"
       ],
       current: false,
       popular: false
@@ -190,8 +190,12 @@ export const SettingsPage = (): JSX.Element => {
   };
 
   const handleUpgrade = (planName: string) => {
-    // In a real app, this would integrate with a payment processor
-    alert(`Upgrading to ${planName} plan. This would redirect to payment processing.`);
+    if (planName === "Custom") {
+      window.location.href = '/contact';
+    } else {
+      // In a real app, this would integrate with a payment processor
+      alert(`Upgrading to ${planName} plan. This would redirect to payment processing.`);
+    }
   };
 
   return (
@@ -292,7 +296,9 @@ export const SettingsPage = (): JSX.Element => {
                         {plan.name}
                       </h4>
                       <div className="flex items-baseline justify-center gap-1 mb-2">
-                        <span className={`[font-family:'Lexend',Helvetica] font-black text-2xl ${
+                        <span className={`[font-family:'Lexend',Helvetica] font-black ${
+                          plan.name === "Custom" ? 'text-xl' : 'text-2xl'
+                        } ${
                           plan.current ? 'text-[#3f8cbf]' : 'text-white'
                         }`}>
                           {plan.price}
@@ -329,7 +335,8 @@ export const SettingsPage = (): JSX.Element => {
                           : 'bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540]'
                       }`}
                     >
-                      {plan.current ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                      {plan.current ? 'Current Plan' : 
+                       plan.name === "Custom" ? 'Contact Sales' : `Upgrade to ${plan.name}`}
                     </Button>
                   </div>
                 ))}

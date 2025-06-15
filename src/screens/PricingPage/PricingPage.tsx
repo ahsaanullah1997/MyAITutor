@@ -24,7 +24,7 @@ export const PricingPage = (): JSX.Element => {
     },
     {
       name: "Pro",
-      price: "PKR 2,999",
+      price: "PKR 799",
       period: "per month",
       description: "Ideal for serious students who want comprehensive support",
       features: [
@@ -41,22 +41,22 @@ export const PricingPage = (): JSX.Element => {
       popular: true
     },
     {
-      name: "Premium",
-      price: "PKR 4,999",
-      period: "per month",
-      description: "Complete solution for competitive exam preparation",
+      name: "Custom",
+      price: "Contact Us",
+      period: "for pricing",
+      description: "Tailored solutions for educational institutes and organizations",
       features: [
         "Everything in Pro",
-        "1-on-1 expert sessions",
-        "MDCAT/ECAT specialized prep",
-        "Custom learning paths",
-        "Advanced AI recommendations",
-        "Detailed performance reports",
-        "Parent/teacher dashboard",
-        "Offline content access"
+        "Bulk student accounts",
+        "Institution dashboard",
+        "Custom curriculum integration",
+        "Dedicated account manager",
+        "Teacher training & support",
+        "Advanced analytics & reporting",
+        "White-label options"
       ],
       highlighted: false,
-      buttonText: "Choose Premium",
+      buttonText: "Contact Sales",
       popular: false
     }
   ];
@@ -83,6 +83,14 @@ export const PricingPage = (): JSX.Element => {
       description: "Detailed analytics to monitor your academic growth"
     }
   ];
+
+  const handleButtonClick = (plan: any) => {
+    if (plan.name === "Custom") {
+      window.location.href = '/contact';
+    } else {
+      window.location.href = '/signup';
+    }
+  };
 
   return (
     <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
@@ -130,7 +138,9 @@ export const PricingPage = (): JSX.Element => {
                     </h3>
                     
                     <div className="flex items-baseline gap-2">
-                      <span className={`[font-family:'Lexend',Helvetica] font-black text-4xl ${
+                      <span className={`[font-family:'Lexend',Helvetica] font-black ${
+                        plan.name === "Custom" ? 'text-2xl' : 'text-4xl'
+                      } ${
                         plan.highlighted ? 'text-white' : 'text-[#3f8cbf]'
                       }`}>
                         {plan.price}
@@ -174,7 +184,7 @@ export const PricingPage = (): JSX.Element => {
                         ? 'bg-white text-[#3f8cbf] hover:bg-gray-100' 
                         : 'bg-[#3f8cbf] text-white hover:bg-[#2d6a94]'
                     }`}
-                    onClick={() => window.location.href = '/signup'}
+                    onClick={() => handleButtonClick(plan)}
                   >
                     {plan.buttonText}
                   </Button>
@@ -234,7 +244,7 @@ export const PricingPage = (): JSX.Element => {
                 },
                 {
                   question: "Is there a free trial for paid plans?",
-                  answer: "Yes! We offer a 7-day free trial for both Pro and Premium plans so you can experience all features before committing."
+                  answer: "Yes! We offer a 7-day free trial for the Pro plan so you can experience all features before committing."
                 },
                 {
                   question: "What payment methods do you accept?",
@@ -249,8 +259,8 @@ export const PricingPage = (): JSX.Element => {
                   answer: "Yes, we offer special discounts for students. Contact our support team with your student ID for more information."
                 },
                 {
-                  question: "Is my data secure with EduGenius?",
-                  answer: "Yes, we use industry-standard encryption and security measures to protect your personal information and learning data."
+                  question: "What's included in the Custom plan?",
+                  answer: "Our Custom plan is designed for educational institutes and includes bulk accounts, custom integrations, dedicated support, and white-label options. Contact us for a personalized quote."
                 }
               ].map((faq, index) => (
                 <Card key={index} className="bg-[#1e282d] border-[#3d4f5b]">
@@ -275,12 +285,20 @@ export const PricingPage = (): JSX.Element => {
             <p className="[font-family:'Lexend',Helvetica] font-normal text-white/90 text-lg tracking-[0] leading-7 mb-8 max-w-[600px] mx-auto">
               Join thousands of students who have already improved their grades with EduGenius. Start your free trial today!
             </p>
-            <Button 
-              className="h-12 px-8 bg-white text-[#3f8cbf] hover:bg-gray-100 rounded-lg [font-family:'Lexend',Helvetica] font-bold transition-colors"
-              onClick={() => window.location.href = '/signup'}
-            >
-              Start Free Trial
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                className="h-12 px-8 bg-white text-[#3f8cbf] hover:bg-gray-100 rounded-lg [font-family:'Lexend',Helvetica] font-bold transition-colors"
+                onClick={() => window.location.href = '/signup'}
+              >
+                Start Free Trial
+              </Button>
+              <Button 
+                className="h-12 px-8 bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-lg [font-family:'Lexend',Helvetica] font-bold transition-colors"
+                onClick={() => window.location.href = '/contact'}
+              >
+                Contact for Custom Plan
+              </Button>
+            </div>
           </div>
         </div>
       </section>
