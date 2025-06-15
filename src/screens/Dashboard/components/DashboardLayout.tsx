@@ -44,12 +44,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       href: "/dashboard/tests", 
       icon: "📝",
       active: currentPath === "/dashboard/tests"
-    },
-    { 
-      name: "Settings", 
-      href: "/dashboard/settings", 
-      icon: "⚙️",
-      active: currentPath === "/dashboard/settings"
     }
   ];
 
@@ -65,6 +59,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   // Get page title based on current path
   const getPageTitle = () => {
     const item = navigationItems.find(item => item.active);
+    if (currentPath === "/dashboard/settings") return "Settings";
     return item ? item.name : "Dashboard";
   };
 
@@ -81,7 +76,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e282d] border-r border-[#3d4f5b] transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}>
         
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b] cursor-pointer" onClick={() => window.location.href = '/dashboard'}>
@@ -91,25 +86,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg">
             MyEduPro
           </h1>
-        </div>
-
-        {/* User Profile */}
-        <div className="px-6 py-4 border-b border-[#3d4f5b]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm [font-family:'Lexend',Helvetica]">
-                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
-                {profile?.first_name} {profile?.last_name}
-              </p>
-              <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
-                {profile?.grade}
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Navigation */}
@@ -135,14 +111,53 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           </ul>
         </nav>
 
-        {/* Sign Out Button */}
-        <div className="p-4 border-t border-[#3d4f5b]">
-          <Button
-            onClick={handleSignOut}
-            className="w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm"
-          >
-            Sign Out
-          </Button>
+        {/* Bottom Section: User Profile, Settings, and Sign Out */}
+        <div className="border-t border-[#3d4f5b]">
+          {/* Settings */}
+          <div className="px-4 py-2">
+            <a
+              href="/dashboard/settings"
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                currentPath === "/dashboard/settings"
+                  ? 'bg-[#3f8cbf] text-white'
+                  : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
+              }`}
+            >
+              <span className="text-lg">⚙️</span>
+              <span className="[font-family:'Lexend',Helvetica] font-medium text-sm">
+                Settings
+              </span>
+            </a>
+          </div>
+
+          {/* User Profile */}
+          <div className="px-6 py-4 border-t border-[#3d4f5b]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm [font-family:'Lexend',Helvetica]">
+                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
+                  {profile?.first_name} {profile?.last_name}
+                </p>
+                <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
+                  {profile?.grade}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sign Out Button */}
+          <div className="p-4">
+            <Button
+              onClick={handleSignOut}
+              className="w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm"
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
 
