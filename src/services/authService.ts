@@ -42,6 +42,9 @@ export class AuthService {
         if (authError.message.includes('Invalid email')) {
           throw new Error('Please enter a valid email address.')
         }
+        if (authError.message.includes('not configured')) {
+          throw new Error('Authentication service is not configured. Please set up your Supabase credentials.')
+        }
         throw new Error(authError.message)
       }
 
@@ -57,7 +60,7 @@ export class AuthService {
               grade: data.grade,
             })
 
-          if (profileError && !profileError.message.includes('duplicate key')) {
+          if (profileError && !profileError.message.includes('duplicate key') && !profileError.message.includes('not configured')) {
             console.error('Profile creation error:', profileError)
             // Don't throw error for profile creation - user can update later
           }
@@ -93,6 +96,9 @@ export class AuthService {
         if (error.message.includes('Too many requests')) {
           throw new Error('Too many login attempts. Please wait a few minutes before trying again.')
         }
+        if (error.message.includes('not configured')) {
+          throw new Error('Authentication service is not configured. Please set up your Supabase credentials.')
+        }
         throw new Error(error.message)
       }
 
@@ -107,10 +113,14 @@ export class AuthService {
   static async signOut() {
     try {
       const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      if (error && !error.message.includes('not configured')) {
+        throw error
+      }
     } catch (error) {
       console.error('Sign out error:', error)
-      throw error
+      if (error instanceof Error && !error.message.includes('not configured')) {
+        throw error
+      }
     }
   }
 
@@ -120,7 +130,7 @@ export class AuthService {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (error) {
         // Handle the specific "Auth session missing!" error gracefully
-        if (error.message === 'Auth session missing!') {
+        if (error.message === 'Auth session missing!' || error.message.includes('not configured')) {
           return null
         }
         throw error
@@ -132,31 +142,29 @@ export class AuthService {
     }
   }
 
-  // Get user profile with enhanced error handling and connection diagnostics
+  // Get user profile with enhanced error handling
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      // Enhanced connection diagnostics
       console.log('Attempting to fetch user profile for:', userId)
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
       
       // First check if we have a valid session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (sessionError) {
+      if (sessionError && !sessionError.message.includes('not configured')) {
         console.error('Session error:', sessionError)
         throw new Error('Authentication session error. Please sign in again.')
       }
 
-      if (!session) {
+      if (!session && !sessionError?.message.includes('not configured')) {
         console.error('No active session found')
         throw new Error('No active session. Please sign in.')
       }
 
-      console.log('Session valid, making database request...')
+      console.log('Making database request...')
 
       // Make the profile request with timeout and better error handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
 
       try {
         const { data, error } = await supabase
@@ -190,6 +198,11 @@ export class AuthService {
           if (error.message.includes('JWT')) {
             throw new Error('Authentication token expired. Please sign in again.')
           }
+
+          if (error.message.includes('not configured')) {
+            console.log('Database not configured, returning null profile')
+            return null
+          }
           
           throw new Error(`Database error: ${error.message}`)
         }
@@ -199,32 +212,34 @@ export class AuthService {
       } catch (fetchError) {
         clearTimeout(timeoutId)
         
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Request timed out. Please check your internet connection and try again.')
+        if (fetchError instanceof Error) {
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Request timed out. Please check your internet connection and try again.')
+          }
+          
+          if (fetchError.message.includes('not configured')) {
+            return null
+          }
         }
         
         throw fetchError
       }
     } catch (error) {
-      // Enhanced error logging with more context
-      console.error('Get user profile error:', {
-        error: error,
-        message: error instanceof Error ? error.message : 'Unknown error',
-        userId: userId,
-        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        online: navigator.onLine
-      })
+      console.error('Get user profile error:', error)
       
       // Check if we're offline
       if (!navigator.onLine) {
         throw new Error('You appear to be offline. Please check your internet connection and try again.')
       }
       
+      // Handle configuration errors gracefully
+      if (error instanceof Error && error.message.includes('not configured')) {
+        return null
+      }
+      
       // Re-throw the error with more context if it's a network error
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to connect to the database. This might be due to:\n1. Internet connection issues\n2. Supabase service being temporarily unavailable\n3. Incorrect Supabase configuration\n\nPlease check your connection and try again.')
+        throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
       }
       
       throw error
@@ -241,7 +256,12 @@ export class AuthService {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('not configured')) {
+          throw new Error('Database not configured. Please set up your Supabase credentials.')
+        }
+        throw error
+      }
       return data
     } catch (error) {
       console.error('Update user profile error:', error)
@@ -259,6 +279,9 @@ export class AuthService {
       if (error) {
         if (error.message.includes('Invalid email')) {
           throw new Error('Please enter a valid email address.')
+        }
+        if (error.message.includes('not configured')) {
+          throw new Error('Password reset is not available. Please contact support.')
         }
         throw new Error(error.message)
       }

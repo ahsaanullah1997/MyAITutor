@@ -47,13 +47,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error fetching user profile:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
-      setError(errorMessage)
-      setProfile(null)
       
-      // Show user-friendly error notification
-      if (errorMessage.includes('connection') || errorMessage.includes('fetch')) {
-        console.warn('Connection issue detected. Profile will be retried on next interaction.')
+      // Only set error for critical issues, not missing profiles
+      if (!errorMessage.includes('No rows found') && !errorMessage.includes('PGRST116')) {
+        setError(errorMessage)
       }
+      setProfile(null)
     }
   }
 
@@ -66,17 +65,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // Get initial session with better error handling and shorter timeout
+    // Get initial session with better error handling
     const getInitialSession = async () => {
       try {
         setError(null)
         console.log('Getting initial session...')
         
-        // Reduced timeout from 60000ms to 15000ms (15 seconds) for faster failure detection
+        // Reduced timeout for faster failure detection
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           controller.abort()
-        }, 15000)
+        }, 8000) // 8 seconds timeout
         
         try {
           const currentUser = await AuthService.getCurrentUser()
@@ -89,31 +88,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           if (currentUser) {
             // Load profile in background, don't block UI
-            await loadUserProfile(currentUser.id)
+            loadUserProfile(currentUser.id).catch(console.error)
           }
         } catch (authError) {
           clearTimeout(timeoutId)
-          throw authError
+          
+          if (authError instanceof Error && authError.name === 'AbortError') {
+            console.warn('Session check timeout - continuing without authentication')
+            // Don't throw error, just continue without auth
+          } else {
+            throw authError
+          }
         }
       } catch (error) {
         console.error('Error getting initial session:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
         
         if (mounted) {
           setUser(null)
           setProfile(null)
           
-          // Provide more specific error messages
-          if (errorMessage.includes('timeout') || errorMessage.includes('AbortError')) {
-            setError('Connection timeout - please check your internet connection and Supabase configuration')
-          } else if (errorMessage.includes('fetch')) {
-            setError('Network error - unable to connect to authentication service')
-          } else {
-            setError('Authentication service unavailable - please try again later')
+          // Only set error for critical issues
+          const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
+          if (!errorMessage.includes('not configured') && !errorMessage.includes('timeout')) {
+            setError('Authentication service temporarily unavailable')
           }
         }
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
@@ -131,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (session?.user) {
           // Load profile asynchronously
-          await loadUserProfile(session.user.id)
+          loadUserProfile(session.user.id).catch(console.error)
         } else {
           setProfile(null)
         }

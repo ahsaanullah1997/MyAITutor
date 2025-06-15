@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Get environment variables with fallbacks for development
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 // Enhanced debugging for environment variables
 console.log('Supabase Environment Check:', {
@@ -11,88 +12,122 @@ console.log('Supabase Environment Check:', {
   hasKey: !!supabaseAnonKey
 })
 
+// Create a mock client if environment variables are missing (for development)
+let supabase: any
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  const missingVars = []
-  if (!supabaseUrl) missingVars.push('VITE_SUPABASE_URL')
-  if (!supabaseAnonKey) missingVars.push('VITE_SUPABASE_ANON_KEY')
+  console.warn('Supabase environment variables missing. Creating mock client for development.')
   
-  throw new Error(`Missing Supabase environment variables: ${missingVars.join(', ')}. Please check your .env file and restart the development server.`)
-}
-
-// Validate URL format
-try {
-  new URL(supabaseUrl)
-} catch (error) {
-  throw new Error(`Invalid Supabase URL format: ${supabaseUrl}. Please check your VITE_SUPABASE_URL in the .env file.`)
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // Add timeout configuration for auth operations
-    flowType: 'pkce'
-  },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
+  // Create a mock Supabase client for development
+  supabase = {
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+      signOut: () => Promise.resolve({ error: null }),
+      onAuthStateChange: (callback: any) => {
+        // Call callback immediately with no session
+        setTimeout(() => callback('SIGNED_OUT', null), 100)
+        return { data: { subscription: { unsubscribe: () => {} } } }
+      }
     },
-    // Add fetch configuration with timeout
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        signal: AbortSignal.timeout(30000) // 30 second timeout for all requests
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'No rows found' } }),
+          limit: () => ({
+            abortSignal: () => Promise.resolve({ data: [], error: null })
+          })
+        }),
+        limit: () => ({
+          abortSignal: () => Promise.resolve({ data: [], error: null })
+        })
+      }),
+      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      update: () => ({
+        eq: () => ({
+          select: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        })
       })
-    }
-  },
-  db: {
-    schema: 'public',
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 2,
-    },
-  },
-})
-
-// Test connection on initialization with better error handling
-const testConnection = async () => {
+    })
+  }
+} else {
+  // Validate URL format
   try {
-    console.log('Testing Supabase connection...')
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for test
-    
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('count')
-      .limit(1)
-      .abortSignal(controller.signal)
-    
-    clearTimeout(timeoutId)
-    
-    if (error) {
-      console.error('Supabase connection test failed:', error.message)
-      console.error('Please verify your Supabase URL and API key in the .env file')
-    } else {
-      console.log('Supabase connection test successful')
-    }
+    new URL(supabaseUrl)
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        console.error('Supabase connection test timed out - check your network connection and Supabase project status')
+    throw new Error(`Invalid Supabase URL format: ${supabaseUrl}. Please check your VITE_SUPABASE_URL in the .env file.`)
+  }
+
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      fetch: (url, options = {}) => {
+        return fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(15000) // 15 second timeout
+        })
+      }
+    },
+    db: {
+      schema: 'public',
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2,
+      },
+    },
+  })
+
+  // Test connection only if we have valid credentials
+  const testConnection = async () => {
+    try {
+      console.log('Testing Supabase connection...')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout for test
+      
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('count')
+        .limit(1)
+        .abortSignal(controller.signal)
+      
+      clearTimeout(timeoutId)
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Supabase connection test failed:', error.message)
       } else {
-        console.error('Supabase connection test error:', error.message)
+        console.log('Supabase connection test successful')
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.warn('Supabase connection test timed out - this is normal if the database is not set up yet')
+        } else {
+          console.warn('Supabase connection test error:', error.message)
+        }
       }
     }
-    console.error('Please verify your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the .env file')
+  }
+
+  // Run connection test in development
+  if (import.meta.env.DEV) {
+    testConnection()
   }
 }
 
-// Run connection test in development
-if (import.meta.env.DEV) {
-  testConnection()
-}
+export { supabase }
 
 // Types for our database
 export interface UserProfile {
