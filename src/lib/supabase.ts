@@ -84,7 +84,16 @@ if (hasPlaceholderValues) {
       fetch: (url, options = {}) => {
         return fetch(url, {
           ...options,
-          signal: AbortSignal.timeout(15000) // 15 second timeout
+          signal: AbortSignal.timeout(10000) // Reduced to 10 second timeout
+        }).catch(error => {
+          // Enhanced error handling for network issues
+          if (error.name === 'AbortError') {
+            throw new Error('Connection timeout - please check your internet connection')
+          }
+          if (error.message.includes('Failed to fetch')) {
+            throw new Error('Unable to connect to Supabase - please check your project URL and internet connection')
+          }
+          throw error
         })
       }
     },
@@ -98,12 +107,12 @@ if (hasPlaceholderValues) {
     },
   })
 
-  // Test connection only if we have valid credentials and not in placeholder mode
+  // Test connection with better error handling
   const testConnection = async () => {
     try {
       console.log('Testing Supabase connection...')
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout for test
+      const timeoutId = setTimeout(() => controller.abort(), 3000) // Reduced to 3 second timeout for test
       
       const { data, error } = await supabase
         .from('user_profiles')
@@ -113,15 +122,23 @@ if (hasPlaceholderValues) {
       
       clearTimeout(timeoutId)
       
-      if (error && error.code !== 'PGRST116') {
-        console.error('Supabase connection test failed:', error.message)
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('Supabase connection successful - user_profiles table exists but is empty')
+        } else if (error.message.includes('relation "user_profiles" does not exist')) {
+          console.warn('Supabase connected but user_profiles table not found. Please run the migration.')
+        } else {
+          console.error('Supabase connection test failed:', error.message)
+        }
       } else {
         console.log('Supabase connection test successful')
       }
     } catch (error) {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          console.warn('Supabase connection test timed out - this is normal if the database is not set up yet')
+          console.warn('Supabase connection test timed out - please check your project URL and internet connection')
+        } else if (error.message.includes('Failed to fetch')) {
+          console.error('Cannot connect to Supabase - please verify your project URL and internet connection')
         } else {
           console.warn('Supabase connection test error:', error.message)
         }
@@ -129,7 +146,7 @@ if (hasPlaceholderValues) {
     }
   }
 
-  // Run connection test in development only if we have real credentials
+  // Run connection test in development
   if (import.meta.env.DEV) {
     testConnection()
   }

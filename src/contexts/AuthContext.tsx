@@ -48,9 +48,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Error fetching user profile:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
       
-      // Only set error for critical issues, not missing profiles
-      if (!errorMessage.includes('No rows found') && !errorMessage.includes('PGRST116')) {
-        setError(errorMessage)
+      // Only set error for critical issues, not missing profiles or connection issues
+      if (!errorMessage.includes('No rows found') && 
+          !errorMessage.includes('PGRST116') && 
+          !errorMessage.includes('not configured')) {
+        
+        // For connection issues, provide a more user-friendly message
+        if (errorMessage.includes('Unable to connect') || 
+            errorMessage.includes('Connection timeout') ||
+            errorMessage.includes('Failed to fetch')) {
+          setError('Unable to load profile data. Please check your internet connection and try refreshing the page.')
+        } else if (errorMessage.includes('Database table not found')) {
+          setError('Database setup incomplete. Please contact support or check the setup instructions.')
+        } else {
+          setError(errorMessage)
+        }
       }
       setProfile(null)
     }
@@ -75,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           controller.abort()
-        }, 8000) // 8 seconds timeout
+        }, 5000) // Reduced to 5 seconds timeout
         
         try {
           const currentUser = await AuthService.getCurrentUser()
@@ -109,8 +121,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Only set error for critical issues
           const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
-          if (!errorMessage.includes('not configured') && !errorMessage.includes('timeout')) {
-            setError('Authentication service temporarily unavailable')
+          if (!errorMessage.includes('not configured') && 
+              !errorMessage.includes('timeout') &&
+              !errorMessage.includes('Failed to fetch')) {
+            setError('Authentication service temporarily unavailable. Please try refreshing the page.')
           }
         }
       } finally {
