@@ -4,19 +4,27 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
+// Check if we have placeholder values
+const hasPlaceholderValues = 
+  supabaseUrl.includes('your-project-id') || 
+  supabaseAnonKey.includes('your-anon-key') ||
+  !supabaseUrl || 
+  !supabaseAnonKey
+
 // Enhanced debugging for environment variables
 console.log('Supabase Environment Check:', {
   url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'MISSING',
   key: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING',
   hasUrl: !!supabaseUrl,
-  hasKey: !!supabaseAnonKey
+  hasKey: !!supabaseAnonKey,
+  hasPlaceholders: hasPlaceholderValues
 })
 
-// Create a mock client if environment variables are missing (for development)
+// Create a mock client if environment variables are missing or contain placeholders
 let supabase: any
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables missing. Creating mock client for development.')
+if (hasPlaceholderValues) {
+  console.warn('Supabase environment variables missing or contain placeholder values. Creating mock client for development.')
   
   // Create a mock Supabase client for development
   supabase = {
@@ -90,7 +98,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     },
   })
 
-  // Test connection only if we have valid credentials
+  // Test connection only if we have valid credentials and not in placeholder mode
   const testConnection = async () => {
     try {
       console.log('Testing Supabase connection...')
@@ -121,7 +129,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     }
   }
 
-  // Run connection test in development
+  // Run connection test in development only if we have real credentials
   if (import.meta.env.DEV) {
     testConnection()
   }
