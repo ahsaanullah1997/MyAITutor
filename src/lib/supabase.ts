@@ -110,33 +110,6 @@ if (hasPlaceholderValues) {
         detectSessionInUrl: true,
         flowType: 'pkce'
       },
-      global: {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        fetch: (url, options = {}) => {
-          return fetch(url, {
-            ...options,
-            signal: AbortSignal.timeout(10000) // 10 second timeout
-          }).catch(error => {
-            // Log error but don't throw - let the calling code handle it
-            console.warn('Supabase fetch error:', error.message)
-            
-            // Return a response-like object that indicates failure
-            return new Response(JSON.stringify({ 
-              error: { 
-                message: error.name === 'AbortError' 
-                  ? 'Connection timeout - please check your internet connection'
-                  : 'Unable to connect to Supabase - please check your project URL and internet connection'
-              } 
-            }), {
-              status: 500,
-              statusText: 'Connection Error',
-              headers: { 'Content-Type': 'application/json' }
-            })
-          })
-        }
-      },
       db: {
         schema: 'public',
       },
@@ -147,20 +120,15 @@ if (hasPlaceholderValues) {
       },
     })
 
-    // Test connection with better error handling - don't throw errors
+    // Simple connection test without custom fetch wrapper
     const testConnection = async () => {
       try {
         console.log('Testing Supabase connection...')
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 3000)
         
         const { data, error } = await supabase
           .from('user_profiles')
           .select('count')
           .limit(1)
-          .abortSignal(controller.signal)
-        
-        clearTimeout(timeoutId)
         
         if (error) {
           if (error.code === 'PGRST116') {
@@ -175,9 +143,7 @@ if (hasPlaceholderValues) {
         }
       } catch (error) {
         if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            console.warn('Supabase connection test timed out - please check your project URL and internet connection')
-          } else if (error.message.includes('Failed to fetch')) {
+          if (error.message.includes('Failed to fetch')) {
             console.warn('Cannot connect to Supabase - please verify your project URL and internet connection')
           } else {
             console.warn('Supabase connection test error:', error.message)
