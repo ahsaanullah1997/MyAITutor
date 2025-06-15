@@ -11,6 +11,7 @@ export const SettingsPage = (): JSX.Element => {
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     grade: profile?.grade || '',
+    board: profile?.board || '', // Add board field
     notifications: true,
     emailUpdates: true,
     studyReminders: true,
@@ -85,12 +86,41 @@ export const SettingsPage = (): JSX.Element => {
     "ECAT Preparation"
   ];
 
+  // Board options for Pakistani education system
+  const boards = [
+    "Federal Board",
+    "Punjab Board", 
+    "Sindh Board",
+    "Khyber Pakhtunkhwa Board",
+    "AJK Mirpur Board",
+    "Baluchistan Board"
+  ];
+
+  // Check if selected grade requires board selection
+  const requiresBoardSelection = (grade: string) => {
+    return [
+      "Class 9 (Metric)",
+      "Class 10 (Metric)", 
+      "Class 11 (FSc/FA)",
+      "Class 12 (FSc/FA)"
+    ].includes(grade);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      };
+      
+      // Clear board selection if grade doesn't require it
+      if (name === 'grade' && !requiresBoardSelection(value)) {
+        newData.board = '';
+      }
+      
+      return newData;
+    });
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -98,11 +128,19 @@ export const SettingsPage = (): JSX.Element => {
     setLoading(true);
     setMessage(null);
 
+    // Validation
+    if (requiresBoardSelection(formData.grade) && !formData.board) {
+      setMessage({ type: 'error', text: 'Please select your board for the selected grade.' });
+      setLoading(false);
+      return;
+    }
+
     try {
       await updateProfile({
         first_name: formData.firstName,
         last_name: formData.lastName,
         grade: formData.grade,
+        board: formData.board, // Include board in update
       });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
@@ -342,6 +380,32 @@ export const SettingsPage = (): JSX.Element => {
                     ))}
                   </select>
                 </div>
+
+                {/* Board Selection - Only show for Metric and FSc grades */}
+                {requiresBoardSelection(formData.grade) && (
+                  <div className="space-y-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Education Board <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      name="board"
+                      value={formData.board}
+                      onChange={handleInputChange}
+                      required={requiresBoardSelection(formData.grade)}
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                    >
+                      <option value="">Select your board</option>
+                      {boards.map((board) => (
+                        <option key={board} value={board} className="text-white bg-[#0f1419]">
+                          {board}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                      Select the education board you're studying under for curriculum-specific content.
+                    </p>
+                  </div>
+                )}
 
                 <Button
                   type="submit"
