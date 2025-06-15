@@ -100,7 +100,7 @@ export const SettingsPage = (): JSX.Element => {
   // Area options for specific boards
   const boardAreas = {
     "Punjab Board": [
-      "(BISE) Lahore",
+      "BISE Lahore",
       "BISE Gujranwala",
       "BISE Faisalabad",
       "BISE Multan",
