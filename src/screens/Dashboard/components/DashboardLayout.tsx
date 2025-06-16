@@ -86,6 +86,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     setProfileDropdownOpen(!profileDropdownOpen);
   };
 
+  // Handle navigation click - don't expand sidebar
+  const handleNavigationClick = (href: string) => {
+    // Navigate to the page without changing sidebar state
+    window.location.href = href;
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -176,9 +182,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <ul className="space-y-2">
             {navigationItems.map((item) => (
               <li key={item.name}>
-                <a
-                  href={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+                <button
+                  onClick={() => handleNavigationClick(item.href)}
+                  className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
@@ -190,7 +196,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   }`}>
                     {item.name}
                   </span>
-                </a>
+                </button>
               </li>
             ))}
           </ul>
@@ -200,9 +206,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         <div className="border-t border-[#3d4f5b]">
           {/* Settings */}
           <div className="px-4 py-2">
-            <a
-              href="/dashboard/settings"
-              className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
+            <button
+              onClick={() => handleNavigationClick('/dashboard/settings')}
+              className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
                 currentPath === "/dashboard/settings"
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
@@ -214,7 +220,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               }`}>
                 Settings
               </span>
-            </a>
+            </button>
           </div>
 
           {/* User Profile */}
@@ -333,14 +339,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                       
                       {/* Menu Items */}
                       <div className="py-1">
-                        <a
-                          href="/dashboard/settings"
-                          className="flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm"
-                          onClick={() => setProfileDropdownOpen(false)}
+                        <button
+                          onClick={() => {
+                            setProfileDropdownOpen(false);
+                            handleNavigationClick('/dashboard/settings');
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
                         >
                           <span className="text-base">⚙️</span>
                           Settings
-                        </a>
+                        </button>
                         
                         <button
                           onClick={() => {
