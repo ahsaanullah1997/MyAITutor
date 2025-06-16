@@ -45,8 +45,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setProfile(userProfile)
       console.log('Profile loaded successfully:', userProfile)
     } catch (error) {
-      console.error('Error fetching user profile:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
+      
+      // Handle expected scenarios (no profile found) differently from actual errors
+      if (errorMessage.includes('No rows found') || 
+          errorMessage.includes('PGRST116') || 
+          errorMessage.includes('not configured')) {
+        console.log('No user profile found for user:', userId, '- this is expected for new users')
+      } else {
+        console.error('Error fetching user profile:', error)
+      }
       
       // Only set error for critical issues, not missing profiles or connection issues
       if (!errorMessage.includes('No rows found') && 
