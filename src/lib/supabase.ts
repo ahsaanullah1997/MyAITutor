@@ -125,6 +125,7 @@ if (hasPlaceholderValues) {
       try {
         console.log('Testing Supabase connection...')
         
+        // Test basic connectivity first
         const { data, error } = await supabase
           .from('user_profiles')
           .select('count')
@@ -133,8 +134,15 @@ if (hasPlaceholderValues) {
         if (error) {
           if (error.code === 'PGRST116') {
             console.log('Supabase connection successful - user_profiles table exists but is empty')
-          } else if (error.message.includes('relation "user_profiles" does not exist')) {
-            console.warn('Supabase connected but user_profiles table not found. Please run the migration.')
+          } else if (error.code === '42P01' || error.message.includes('relation "user_profiles" does not exist')) {
+            console.error('❌ DATABASE SETUP REQUIRED: The user_profiles table does not exist.')
+            console.error('📋 To fix this issue:')
+            console.error('1. Go to your Supabase project dashboard')
+            console.error('2. Navigate to SQL Editor')
+            console.error('3. Copy and paste the contents of supabase/migrations/20250614110210_small_river.sql')
+            console.error('4. Click "Run" to execute the migration')
+            console.error('5. Refresh this page after the migration completes')
+            console.error('🔗 See SUPABASE_SETUP.md for detailed instructions')
           } else {
             console.warn('Supabase connection test failed:', error.message)
           }
