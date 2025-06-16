@@ -222,7 +222,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             className={`flex items-center gap-3 cursor-pointer transition-all duration-300 ${
               !isMobile && sidebarCollapsed ? 'opacity-0 pointer-events-none w-0 overflow-hidden' : 'opacity-100 w-auto'
             }`}
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/'}
           >
             <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-white rounded-full" />
