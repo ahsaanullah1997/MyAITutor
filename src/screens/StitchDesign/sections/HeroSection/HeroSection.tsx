@@ -105,22 +105,23 @@ export const HeroSection = (): JSX.Element => {
 
       {/* Mobile Menu Button */}
       <div className="lg:hidden flex items-center gap-3">
-        {/* Mobile Auth Buttons - Compact */}
-        {!loading && !user && (
-          <Button 
-            className="h-8 px-3 py-0 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[16px] font-bold text-white text-xs font-['Lexend',Helvetica] transition-colors"
-            onClick={() => window.location.href = '/signup'}
-          >
-            Sign Up
-          </Button>
-        )}
-        
+        {/* Mobile Auth Buttons - Show Dashboard if logged in */}
         {!loading && user && (
           <Button 
             className="h-8 px-3 py-0 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[16px] font-bold text-white text-xs font-['Lexend',Helvetica] transition-colors"
             onClick={() => window.location.href = '/dashboard'}
           >
             Dashboard
+          </Button>
+        )}
+        
+        {/* Mobile Sign Up Button - Only show if not logged in */}
+        {!loading && !user && (
+          <Button 
+            className="h-8 px-3 py-0 bg-[#3f8cbf] hover:bg-[#2d6a94] rounded-[16px] font-bold text-white text-xs font-['Lexend',Helvetica] transition-colors"
+            onClick={() => window.location.href = '/signup'}
+          >
+            Sign Up
           </Button>
         )}
         
