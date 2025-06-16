@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -7,12 +7,16 @@ import { useAuth } from "../../../contexts/AuthContext";
 
 export const SettingsPage = (): JSX.Element => {
   const { profile, updateProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     grade: profile?.grade || '',
     board: profile?.board || '',
     area: profile?.area || '',
+    profilePicture: null as File | null,
     notifications: true,
     emailUpdates: true,
     studyReminders: true,
@@ -155,6 +159,34 @@ export const SettingsPage = (): JSX.Element => {
     });
   };
 
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setMessage({ type: 'error', text: 'Please select a valid image file' });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'Image size must be less than 5MB' });
+        return;
+      }
+      
+      setFormData(prev => ({ ...prev, profilePicture: file }));
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePicturePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      setMessage(null);
+    }
+  };
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -180,8 +212,11 @@ export const SettingsPage = (): JSX.Element => {
         grade: formData.grade,
         board: formData.board,
         area: formData.area,
+        // In a real app, you'd upload the profile picture to storage first
+        // profile_picture_url: uploadedImageUrl
       });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setIsEditing(false);
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
     } finally {
@@ -361,9 +396,17 @@ export const SettingsPage = (): JSX.Element => {
           {/* Profile Settings */}
           <Card className="bg-[#1e282d] border-[#3d4f5b]">
             <CardContent className="p-6">
-              <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-6">
-                Profile Information
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg">
+                  Profile Information
+                </h3>
+                <Button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="bg-transparent border border-[#3d4f5b] text-[#3f8cbf] hover:bg-[#3f8cbf] hover:text-white [font-family:'Lexend',Helvetica] font-medium text-sm px-4 py-2"
+                >
+                  {isEditing ? 'Cancel' : 'Edit'}
+                </Button>
+              </div>
               
               {message && (
                 <div className={`p-4 rounded-lg mb-6 ${
@@ -377,116 +420,235 @@ export const SettingsPage = (): JSX.Element => {
                 </div>
               )}
 
-              <form onSubmit={handleProfileUpdate} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                      First Name
-                    </label>
+              {isEditing ? (
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  {/* Profile Picture Section */}
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative">
+                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-[#0f1419] border-2 border-[#3d4f5b] flex items-center justify-center">
+                        {profilePicturePreview ? (
+                          <img 
+                            src={profilePicturePreview} 
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : profile?.profile_picture_url ? (
+                          <img 
+                            src={profile.profile_picture_url} 
+                            alt="Current profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-[#9eafbf] text-2xl md:text-3xl">
+                            👤
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center text-white hover:bg-[#2d6a94] transition-colors"
+                      >
+                        📷
+                      </button>
+                    </div>
+                    <div className="text-center">
+                      <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm mb-1">
+                        Profile Picture
+                      </p>
+                      <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                        Click the camera icon to change your photo
+                      </p>
+                    </div>
                     <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
-                      placeholder="Enter your first name"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className="hidden"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        First Name
+                      </label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                        placeholder="Enter your first name"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Last Name
+                      </label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                        placeholder="Enter your last name"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                      Last Name
+                      Current Grade/Level
                     </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
+                    <select
+                      name="grade"
+                      value={formData.grade}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
-                      placeholder="Enter your last name"
-                    />
+                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                    >
+                      <option value="">Select your grade/level</option>
+                      {grades.map((grade) => (
+                        <option key={grade} value={grade} className="text-white bg-[#0f1419]">
+                          {grade}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                    Current Grade/Level
-                  </label>
-                  <select
-                    name="grade"
-                    value={formData.grade}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                  {/* Board Selection - Only show for Metric and FSc grades */}
+                  {requiresBoardSelection(formData.grade) && (
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Education Board <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        name="board"
+                        value={formData.board}
+                        onChange={handleInputChange}
+                        required={requiresBoardSelection(formData.grade)}
+                        className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                      >
+                        <option value="">Select your board</option>
+                        {boards.map((board) => (
+                          <option key={board} value={board} className="text-white bg-[#0f1419]">
+                            {board}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                        Select the education board you're studying under for curriculum-specific content.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Area Selection - Only show for Punjab and Sindh boards */}
+                  {requiresAreaSelection(formData.board) && (
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Area/Region <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        name="area"
+                        value={formData.area}
+                        onChange={handleInputChange}
+                        required={requiresAreaSelection(formData.board)}
+                        className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
+                      >
+                        <option value="">Select your area</option>
+                        {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
+                          <option key={area} value={area} className="text-white bg-[#0f1419]">
+                            {area}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                        Select your specific area for region-specific exam patterns and content.
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white px-6 py-3 [font-family:'Lexend',Helvetica] font-medium disabled:opacity-50"
                   >
-                    <option value="">Select your grade/level</option>
-                    {grades.map((grade) => (
-                      <option key={grade} value={grade} className="text-white bg-[#0f1419]">
-                        {grade}
-                      </option>
-                    ))}
-                  </select>
+                    {loading ? 'Updating...' : 'Update Profile'}
+                  </Button>
+                </form>
+              ) : (
+                <div className="space-y-6">
+                  {/* Profile Picture Display */}
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-[#0f1419] border-2 border-[#3d4f5b] flex items-center justify-center">
+                      {profile?.profile_picture_url ? (
+                        <img 
+                          src={profile.profile_picture_url} 
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-[#9eafbf] text-2xl md:text-3xl">
+                          👤
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        First Name
+                      </label>
+                      <div className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white [font-family:'Lexend',Helvetica]">
+                        {profile?.first_name || 'Not set'}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Last Name
+                      </label>
+                      <div className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white [font-family:'Lexend',Helvetica]">
+                        {profile?.last_name || 'Not set'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                      Current Grade/Level
+                    </label>
+                    <div className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white [font-family:'Lexend',Helvetica]">
+                      {profile?.grade || 'Not set'}
+                    </div>
+                  </div>
+
+                  {profile?.board && (
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Education Board
+                      </label>
+                      <div className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white [font-family:'Lexend',Helvetica]">
+                        {profile.board}
+                      </div>
+                    </div>
+                  )}
+
+                  {profile?.area && (
+                    <div className="space-y-2">
+                      <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
+                        Area/Region
+                      </label>
+                      <div className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white [font-family:'Lexend',Helvetica]">
+                        {profile.area}
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Board Selection - Only show for Metric and FSc grades */}
-                {requiresBoardSelection(formData.grade) && (
-                  <div className="space-y-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                      Education Board <span className="text-red-400">*</span>
-                    </label>
-                    <select
-                      name="board"
-                      value={formData.board}
-                      onChange={handleInputChange}
-                      required={requiresBoardSelection(formData.grade)}
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
-                    >
-                      <option value="">Select your board</option>
-                      {boards.map((board) => (
-                        <option key={board} value={board} className="text-white bg-[#0f1419]">
-                          {board}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
-                      Select the education board you're studying under for curriculum-specific content.
-                    </p>
-                  </div>
-                )}
-
-                {/* Area Selection - Only show for Punjab and Sindh boards */}
-                {requiresAreaSelection(formData.board) && (
-                  <div className="space-y-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                      Area/Region <span className="text-red-400">*</span>
-                    </label>
-                    <select
-                      name="area"
-                      value={formData.area}
-                      onChange={handleInputChange}
-                      required={requiresAreaSelection(formData.board)}
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none [font-family:'Lexend',Helvetica]"
-                    >
-                      <option value="">Select your area</option>
-                      {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
-                        <option key={area} value={area} className="text-white bg-[#0f1419]">
-                          {area}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
-                      Select your specific area for region-specific exam patterns and content.
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white px-6 py-3 [font-family:'Lexend',Helvetica] font-medium disabled:opacity-50"
-                >
-                  {loading ? 'Updating...' : 'Update Profile'}
-                </Button>
-              </form>
+              )}
             </CardContent>
           </Card>
 
