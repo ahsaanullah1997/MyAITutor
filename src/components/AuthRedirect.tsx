@@ -6,7 +6,7 @@ interface AuthRedirectProps {
 }
 
 export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
 
   useEffect(() => {
     // Only redirect if user is authenticated and we're on a public page
@@ -14,12 +14,19 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
       const currentPath = window.location.pathname
       const publicPaths = ['/', '/features', '/about', '/contact', '/pricing', '/privacy', '/terms', '/login', '/signup']
       
-      // If user is on a public page, redirect to dashboard
+      // If user is on a public page, redirect to dashboard or profile completion
       if (publicPaths.includes(currentPath)) {
-        window.location.href = '/dashboard'
+        // Check if user has completed their profile
+        if (!profile || !profile.grade) {
+          // User hasn't completed profile, redirect to profile completion
+          window.location.href = '/complete-profile'
+        } else {
+          // User has completed profile, redirect to dashboard
+          window.location.href = '/dashboard'
+        }
       }
     }
-  }, [user, loading])
+  }, [user, profile, loading])
 
   // Show loading while checking auth state
   if (loading) {
