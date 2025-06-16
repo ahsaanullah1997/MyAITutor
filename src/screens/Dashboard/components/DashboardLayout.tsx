@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Button } from "../../../components/ui/button";
-import { Card } from "../../../components/ui/card";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,9 +11,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Get current page from URL
   const currentPath = window.location.pathname;
+
+  // Check if screen is mobile size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [currentPath]);
 
   const navigationItems = [
     { 
@@ -71,7 +87,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   };
 
   // Close dropdown when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.profile-dropdown')) {
@@ -88,32 +104,43 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     };
   }, [profileDropdownOpen]);
 
+  // Calculate sidebar width based on state
+  const getSidebarWidth = () => {
+    if (isMobile) return 'w-64'; // Always full width on mobile
+    return sidebarCollapsed ? 'w-16' : 'w-64';
+  };
+
   return (
     <div className="min-h-screen bg-[#0f1419] flex">
       {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
+      {sidebarOpen && isMobile && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 ${
-        sidebarCollapsed ? 'w-16' : 'w-64'
-      } bg-[#1e282d] border-r border-[#3d4f5b] transform ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}>
+      <div className={`
+        ${isMobile ? 'fixed' : 'relative'} 
+        inset-y-0 left-0 z-50 
+        ${getSidebarWidth()} 
+        bg-[#1e282d] border-r border-[#3d4f5b] 
+        transform transition-all duration-300 ease-in-out
+        ${isMobile ? (sidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
+        flex flex-col
+      `}>
         
         {/* Logo and Collapse Button */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#3d4f5b]">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-[#3d4f5b] min-h-[73px]">
+          {/* Logo */}
           <div 
-            className={`flex items-center gap-3 cursor-pointer transition-opacity duration-300 ${
-              sidebarCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            className={`flex items-center gap-3 cursor-pointer transition-all duration-300 ${
+              !isMobile && sidebarCollapsed ? 'opacity-0 pointer-events-none w-0 overflow-hidden' : 'opacity-100 w-auto'
             }`}
             onClick={() => window.location.href = '/dashboard'}
           >
-            <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center">
+            <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-white rounded-full" />
             </div>
             <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg whitespace-nowrap">
@@ -121,71 +148,95 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             </h1>
           </div>
           
-          {/* Collapse Button - Hidden on mobile */}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <span className="text-lg">
-              {sidebarCollapsed ? '→' : '←'}
-            </span>
-          </button>
+          {/* Collapse Button - Only show on desktop */}
+          {!isMobile && (
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors flex-shrink-0"
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <span className="text-lg">
+                {sidebarCollapsed ? '→' : '←'}
+              </span>
+            </button>
+          )}
+
+          {/* Mobile Close Button */}
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+            >
+              <span className="text-lg">✕</span>
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-4">
+        <nav className="flex-1 px-4 py-4 overflow-y-auto">
           <ul className="space-y-2">
             {navigationItems.map((item) => (
               <li key={item.name}>
                 <a
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
                   }`}
-                  title={sidebarCollapsed ? item.name : undefined}
+                  title={!isMobile && sidebarCollapsed ? item.name : undefined}
                 >
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
-                    sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+                    !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
                   }`}>
                     {item.name}
                   </span>
+                  
+                  {/* Tooltip for collapsed state */}
+                  {!isMobile && sidebarCollapsed && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-[#0f1419] text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                      {item.name}
+                    </div>
+                  )}
                 </a>
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* Bottom Section: User Profile, Settings, and Sign Out */}
+        {/* Bottom Section: Settings, User Profile, and Sign Out */}
         <div className="border-t border-[#3d4f5b]">
           {/* Settings */}
           <div className="px-4 py-2">
             <a
               href="/dashboard/settings"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative ${
                 currentPath === "/dashboard/settings"
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
               }`}
-              title={sidebarCollapsed ? "Settings" : undefined}
+              title={!isMobile && sidebarCollapsed ? "Settings" : undefined}
             >
               <span className="text-lg flex-shrink-0">⚙️</span>
               <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
-                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+                !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
               }`}>
                 Settings
               </span>
+              
+              {/* Tooltip for collapsed state */}
+              {!isMobile && sidebarCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-[#0f1419] text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Settings
+                </div>
+              )}
             </a>
           </div>
 
           {/* User Profile */}
-          <div className={`px-6 py-4 border-t border-[#3d4f5b] transition-all duration-300 ${
-            sidebarCollapsed ? 'px-2' : 'px-6'
-          }`}>
-            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+          <div className={`px-4 py-4 border-t border-[#3d4f5b] transition-all duration-300`}>
+            <div className={`flex items-center gap-3 ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}>
               <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 {profile?.profile_picture_url ? (
                   <img 
@@ -195,12 +246,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   />
                 ) : (
                   <span className="text-white font-bold text-sm [font-family:'Lexend',Helvetica]">
-                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    {profile?.first_name?.[0] || 'U'}{profile?.last_name?.[0] || ''}
                   </span>
                 )}
               </div>
               <div className={`flex-1 min-w-0 transition-all duration-300 ${
-                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+                !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
               }`}>
                 <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
                   {profile?.first_name} {profile?.last_name}
@@ -216,14 +267,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="p-4">
             <Button
               onClick={handleSignOut}
-              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
-                sidebarCollapsed ? 'px-2' : 'px-4'
+              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                !isMobile && sidebarCollapsed ? 'px-2' : 'px-4'
               }`}
-              title={sidebarCollapsed ? "Sign Out" : undefined}
+              title={!isMobile && sidebarCollapsed ? "Sign Out" : undefined}
             >
-              <span className={sidebarCollapsed ? 'text-lg' : 'hidden'}>🚪</span>
+              <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
+                {!isMobile && sidebarCollapsed ? '🚪' : '🚪'}
+              </span>
               <span className={`transition-all duration-300 ${
-                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden ml-0' : 'opacity-100 w-auto ml-0'
+                !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
               }`}>
                 Sign Out
               </span>
@@ -233,14 +286,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-0">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="bg-[#1e282d] border-b border-[#3d4f5b] px-4 lg:px-6 py-4">
+        <header className="bg-[#1e282d] border-b border-[#3d4f5b] px-4 lg:px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center justify-center w-8 h-8 text-white"
+              className="lg:hidden flex items-center justify-center w-8 h-8 text-white hover:bg-[#2a3540] rounded-lg transition-colors"
             >
               <div className="space-y-1">
                 <span className="block w-5 h-0.5 bg-white"></span>
@@ -250,14 +303,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             </button>
 
             {/* Page Title */}
-            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl">
+            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl truncate">
               {getPageTitle()}
             </h1>
 
             {/* Quick Actions */}
             <div className="flex items-center gap-2">
               <Button 
-                className="hidden sm:flex bg-[#3f8cbf] hover:bg-[#2d6a94] text-white rounded-lg px-4 py-2 [font-family:'Lexend',Helvetica] font-medium text-sm"
+                className="hidden sm:flex bg-[#3f8cbf] hover:bg-[#2d6a94] text-white rounded-lg px-4 py-2 [font-family:'Lexend',Helvetica] font-medium text-sm whitespace-nowrap"
                 onClick={() => window.location.href = '/dashboard/ai-tutor'}
               >
                 Ask AI Tutor
@@ -267,7 +320,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <div className="relative profile-dropdown">
                 <button
                   onClick={handleDropdownToggle}
-                  className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-[#3f8cbf] hover:ring-opacity-50 transition-all"
+                  className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-[#3f8cbf] hover:ring-opacity-50 transition-all flex-shrink-0"
                 >
                   {profile?.profile_picture_url ? (
                     <img 
@@ -327,7 +380,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </header>
 
         {/* Page Content */}
-        <main className="p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto">
           {children}
         </main>
       </div>
