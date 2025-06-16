@@ -212,8 +212,8 @@ export const ProfileInformationPage = (): JSX.Element => {
           {/* Profile Information Form */}
           <Card className="bg-[#1e282d] border-[#3d4f5b]">
             <CardContent className="p-6 relative">
-              {/* Edit Button - Top Left Corner */}
-              <div className="absolute top-4 left-4">
+              {/* Edit Button - Top Right Corner */}
+              <div className="absolute top-4 right-4">
                 <Button
                   type="button"
                   onClick={handleEditToggle}
