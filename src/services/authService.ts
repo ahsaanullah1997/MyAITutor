@@ -22,7 +22,7 @@ export class AuthService {
     try {
       const fileExt = file.name.split('.').pop()
       const fileName = `${userId}-${Date.now()}.${fileExt}`
-      const filePath = `profile-pictures/${fileName}`
+      const filePath = `${userId}/${fileName}` // Store in user-specific folder
 
       // Upload file to Supabase storage
       const { data, error } = await supabase.storage
@@ -56,7 +56,7 @@ export class AuthService {
       const urlParts = url.split('/profile-pictures/')
       if (urlParts.length < 2) return
 
-      const filePath = `profile-pictures/${urlParts[1]}`
+      const filePath = urlParts[1]
 
       const { error } = await supabase.storage
         .from('profile-pictures')
