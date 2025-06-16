@@ -172,6 +172,7 @@ export interface UserProfile {
   grade: string
   board?: string
   area?: string
+  profile_picture_url?: string
   created_at: string
   updated_at: string
 }

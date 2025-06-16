@@ -133,17 +133,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           {/* User Profile */}
           <div className="px-6 py-4 border-t border-[#3d4f5b]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm [font-family:'Lexend',Helvetica]">
-                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                </span>
+              <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden">
+                {profile?.profile_picture_url ? (
+                  <img 
+                    src={profile.profile_picture_url} 
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-sm [font-family:'Lexend',Helvetica]">
+                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                  </span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
                   {profile?.first_name} {profile?.last_name}
                 </p>
                 <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
-                  {profile?.grade}
+                  {profile?.grade || 'Complete your profile'}
                 </p>
               </div>
             </div>
@@ -191,10 +199,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               >
                 Ask AI Tutor
               </Button>
-              <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">
-                  {profile?.first_name?.[0]}
-                </span>
+              <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden">
+                {profile?.profile_picture_url ? (
+                  <img 
+                    src={profile.profile_picture_url} 
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-xs font-bold">
+                    {profile?.first_name?.[0] || 'U'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
