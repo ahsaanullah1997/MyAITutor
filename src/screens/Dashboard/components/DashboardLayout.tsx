@@ -27,6 +27,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
+  // Load sidebar state from localStorage on mount
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+  }, []);
+
+  // Save sidebar state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
   // Close mobile sidebar when route changes
   useEffect(() => {
     setSidebarOpen(false);
@@ -90,6 +103,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const handleNavigationClick = (href: string) => {
     // Navigate to the page without changing sidebar state
     window.location.href = href;
+  };
+
+  // Handle sidebar collapse toggle
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   // Close dropdown when clicking outside
@@ -157,8 +175,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           {/* Collapse Button - Only show on desktop */}
           {!isMobile && (
             <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onClick={handleSidebarToggle}
               className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors flex-shrink-0"
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               <span className="text-lg">
                 {sidebarCollapsed ? '→' : '←'}
@@ -189,6 +208,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
                   } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
+                  title={!isMobile && sidebarCollapsed ? item.name : undefined}
                 >
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -213,6 +233,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
               } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
+              title={!isMobile && sidebarCollapsed ? 'Settings' : undefined}
             >
               <span className="text-lg flex-shrink-0">⚙️</span>
               <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -259,6 +280,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center ${
                 !isMobile && sidebarCollapsed ? 'px-2 justify-center' : 'px-4 justify-center gap-2'
               }`}
+              title={!isMobile && sidebarCollapsed ? 'Sign Out' : undefined}
             >
               <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
                 {!isMobile && sidebarCollapsed ? '🚪' : '🚪'}
