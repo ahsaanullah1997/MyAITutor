@@ -37,15 +37,15 @@ export class ProgressService {
         .from('user_progress_stats')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No progress found, initialize with zeros
-          return await this.initializeUserProgress(userId)
-        }
-        throw error
+      if (error) throw error
+
+      if (!data) {
+        // No progress found, initialize with zeros
+        return await this.initializeUserProgress(userId)
       }
+      
       return data
     } catch (error) {
       console.error('Error fetching user progress:', error)
