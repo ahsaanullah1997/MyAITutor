@@ -222,7 +222,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     try {
       setError(null)
-      const updatedProfile = await AuthService.updateUserProfile(user.id, updates)
+      
+      // Merge updates with existing profile data to preserve required fields
+      const profileData = {
+        ...profile,
+        ...updates,
+        // Ensure required fields are always present
+        first_name: updates.first_name || profile?.first_name || '',
+        last_name: updates.last_name || profile?.last_name || '',
+        grade: updates.grade || profile?.grade || ''
+      }
+      
+      const updatedProfile = await AuthService.updateUserProfile(user.id, profileData)
       setProfile(updatedProfile)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
