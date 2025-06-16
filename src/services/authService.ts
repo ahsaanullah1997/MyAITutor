@@ -196,15 +196,17 @@ export class AuthService {
         clearTimeout(timeoutId)
 
         if (error) {
-          console.error('Database query error:', {
+          console.log('Database query error details:', {
             code: error.code,
             message: error.message,
             details: error.details,
             hint: error.hint
           })
 
-          if (error.code === 'PGRST116') {
-            // No profile found - this is okay, user can create one
+          // Handle "no rows found" cases - this is expected when user profile doesn't exist yet
+          if (error.code === 'PGRST116' || 
+              error.message.includes('JSON object requested, multiple (or no) rows returned') ||
+              error.message.includes('The result contains 0 rows')) {
             console.log('No profile found for user, returning null')
             return null
           }
@@ -256,7 +258,9 @@ export class AuthService {
         }
         
         // Also check if the error message indicates no rows found
-        if (fetchError instanceof Error && fetchError.message.includes('JSON object requested, multiple (or no) rows returned')) {
+        if (fetchError instanceof Error && 
+            (fetchError.message.includes('JSON object requested, multiple (or no) rows returned') ||
+             fetchError.message.includes('The result contains 0 rows'))) {
           console.log('No profile found for user (from error message), returning null')
           return null
         }
@@ -273,6 +277,15 @@ export class AuthService {
       
       // Handle configuration errors gracefully
       if (error instanceof Error && error.message.includes('not configured')) {
+        return null
+      }
+      
+      // Handle "no rows found" errors at the top level as well
+      if (error instanceof Error && 
+          (error.message.includes('JSON object requested, multiple (or no) rows returned') ||
+           error.message.includes('The result contains 0 rows') ||
+           (typeof error === 'object' && 'code' in error && error.code === 'PGRST116'))) {
+        console.log('No profile found for user (top level catch), returning null')
         return null
       }
       
