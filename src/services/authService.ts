@@ -278,8 +278,7 @@ export class AuthService {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates)
-        .eq('id', userId)
+        .upsert({ id: userId, ...updates }, { onConflict: 'id' })
         .select()
         .single()
 
