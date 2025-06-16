@@ -66,23 +66,6 @@ export const LoginPage = (): JSX.Element => {
     }
   };
 
-  // Demo account quick login
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await signIn({
-        email: 'demo@myedupro.com',
-        password: 'demo123',
-      });
-      window.location.href = '/dashboard';
-    } catch (error: any) {
-      setError('Demo account not available. Please create your own account.');
-      setLoading(false);
-    }
-  };
-
   return (
     <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
       <HeroSection />
@@ -97,27 +80,6 @@ export const LoginPage = (): JSX.Element => {
             <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
               Sign in to continue your learning journey with MyEduPro
             </p>
-          </div>
-
-          {/* Demo Account Info */}
-          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-400 text-xs md:text-sm [font-family:'Lexend',Helvetica] font-medium mb-1">
-                  Try Demo Account
-                </p>
-                <p className="text-blue-300 text-xs [font-family:'Lexend',Helvetica]">
-                  Experience the platform instantly
-                </p>
-              </div>
-              <Button
-                onClick={handleDemoLogin}
-                disabled={loading}
-                className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-2 [font-family:'Lexend',Helvetica] font-medium"
-              >
-                {loading ? 'Loading...' : 'Demo Login'}
-              </Button>
-            </div>
           </div>
 
           {/* Login Form */}
