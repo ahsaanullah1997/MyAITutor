@@ -10,6 +10,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, profile, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   // Get current page from URL
   const currentPath = window.location.pathname;
@@ -62,6 +63,29 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     if (currentPath === "/dashboard/settings") return "Settings";
     return item ? item.name : "Dashboard";
   };
+
+  // Close dropdown when clicking outside
+  const handleDropdownToggle = () => {
+    setProfileDropdownOpen(!profileDropdownOpen);
+  };
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.profile-dropdown')) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    if (profileDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
 
   return (
     <div className="min-h-screen bg-[#0f1419] flex">
@@ -199,17 +223,64 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               >
                 Ask AI Tutor
               </Button>
-              <div className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden">
-                {profile?.profile_picture_url ? (
-                  <img 
-                    src={profile.profile_picture_url} 
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-white text-xs font-bold">
-                    {profile?.first_name?.[0] || 'U'}
-                  </span>
+              
+              {/* Profile Dropdown */}
+              <div className="relative profile-dropdown">
+                <button
+                  onClick={handleDropdownToggle}
+                  className="w-8 h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-[#3f8cbf] hover:ring-opacity-50 transition-all"
+                >
+                  {profile?.profile_picture_url ? (
+                    <img 
+                      src={profile.profile_picture_url} 
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-xs font-bold">
+                      {profile?.first_name?.[0] || 'U'}
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown Menu */}
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#1e282d] border border-[#3d4f5b] rounded-lg shadow-lg z-50">
+                    <div className="py-2">
+                      {/* User Info */}
+                      <div className="px-4 py-2 border-b border-[#3d4f5b]">
+                        <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
+                          {profile?.first_name} {profile?.last_name}
+                        </p>
+                        <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                      
+                      {/* Menu Items */}
+                      <div className="py-1">
+                        <a
+                          href="/dashboard/settings"
+                          className="flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm"
+                          onClick={() => setProfileDropdownOpen(false)}
+                        >
+                          <span className="text-base">⚙️</span>
+                          Settings
+                        </a>
+                        
+                        <button
+                          onClick={() => {
+                            setProfileDropdownOpen(false);
+                            handleSignOut();
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
+                        >
+                          <span className="text-base">🚪</span>
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
