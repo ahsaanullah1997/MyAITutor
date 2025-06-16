@@ -381,6 +381,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
             {/* Quick Actions */}
             <div className="flex items-center gap-2">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={handleThemeToggle}
+                className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                <span className="text-lg">
+                  {isDarkMode ? '☀️' : '🌙'}
+                </span>
+              </button>
+
               <Button 
                 className="hidden sm:flex bg-[#3f8cbf] hover:bg-[#2d6a94] text-white rounded-lg px-4 py-2 [font-family:'Lexend',Helvetica] font-medium text-sm whitespace-nowrap"
                 onClick={() => window.location.href = '/dashboard/ai-tutor'}
