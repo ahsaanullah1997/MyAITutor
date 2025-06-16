@@ -4,33 +4,68 @@ import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../contexts/AuthContext";
 
 export const DashboardOverview = (): JSX.Element => {
-  const { profile } = useAuth();
+  const { profile, progressStats, subjectProgress, recordStudySession } = useAuth();
+
+  // Mock function to simulate study session
+  const handleQuickStudy = async (subject: string) => {
+    try {
+      // Record a 15-minute lesson session
+      await recordStudySession('lesson', subject, 15);
+      alert(`Great! You've completed a 15-minute ${subject} lesson. Your progress has been updated!`);
+    } catch (error) {
+      console.error('Error recording study session:', error);
+    }
+  };
+
+  // Mock function to simulate AI tutor session
+  const handleAITutorSession = async () => {
+    try {
+      // Record a 10-minute AI tutor session
+      await recordStudySession('ai_tutor', 'General', 10);
+      window.location.href = '/dashboard/ai-tutor';
+    } catch (error) {
+      console.error('Error recording AI session:', error);
+      window.location.href = '/dashboard/ai-tutor';
+    }
+  };
+
+  // Mock function to simulate taking a test
+  const handleTakeTest = async (subject: string) => {
+    try {
+      // Simulate a test with random score between 70-95
+      const score = Math.floor(Math.random() * 26) + 70;
+      await recordStudySession('test', subject, 30, score);
+      alert(`Test completed! You scored ${score}% in ${subject}. Your progress has been updated!`);
+    } catch (error) {
+      console.error('Error recording test:', error);
+    }
+  };
 
   const stats = [
     {
       title: "Study Streak",
-      value: "7 days",
-      change: "+2 from last week",
+      value: `${progressStats?.study_streak_days || 0} days`,
+      change: progressStats?.study_streak_days ? `+${progressStats.study_streak_days > 1 ? progressStats.study_streak_days - 1 : 0} from last week` : "Start your streak!",
       positive: true,
       icon: "🔥"
     },
     {
       title: "Completed Lessons",
-      value: "24",
-      change: "+6 this week",
+      value: `${progressStats?.completed_lessons || 0}`,
+      change: `+${Math.floor((progressStats?.completed_lessons || 0) / 4)} this week`,
       positive: true,
       icon: "✅"
     },
     {
       title: "Average Score",
-      value: "85%",
-      change: "+5% improvement",
-      positive: true,
+      value: `${progressStats?.average_test_score || 0}%`,
+      change: progressStats?.average_test_score ? `${progressStats.average_test_score >= 80 ? '+' : ''}${progressStats.average_test_score - 75}% from target` : "Take your first test",
+      positive: (progressStats?.average_test_score || 0) >= 75,
       icon: "📊"
     },
     {
       title: "Time Studied",
-      value: "12.5h",
+      value: `${Math.round((progressStats?.weekly_study_time || 0) / 60 * 10) / 10}h`,
       change: "This week",
       positive: true,
       icon: "⏱️"
@@ -82,33 +117,6 @@ export const DashboardOverview = (): JSX.Element => {
     }
   ];
 
-  const subjects = [
-    {
-      name: "Mathematics",
-      progress: 75,
-      color: "#3f8cbf",
-      nextTopic: "Calculus Basics"
-    },
-    {
-      name: "Physics",
-      progress: 60,
-      color: "#10b981",
-      nextTopic: "Thermodynamics"
-    },
-    {
-      name: "Chemistry",
-      progress: 85,
-      color: "#f59e0b",
-      nextTopic: "Organic Reactions"
-    },
-    {
-      name: "Biology",
-      progress: 45,
-      color: "#ef4444",
-      nextTopic: "Cell Division"
-    }
-  ];
-
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -121,7 +129,7 @@ export const DashboardOverview = (): JSX.Element => {
         </p>
         <Button 
           className="bg-white text-[#3f8cbf] hover:bg-gray-100 [font-family:'Lexend',Helvetica] font-bold"
-          onClick={() => window.location.href = '/dashboard/ai-tutor'}
+          onClick={handleAITutorSession}
         >
           Continue Learning
         </Button>
@@ -161,27 +169,32 @@ export const DashboardOverview = (): JSX.Element => {
                 Subject Progress
               </h3>
               <div className="space-y-4">
-                {subjects.map((subject, index) => (
+                {subjectProgress.slice(0, 4).map((subject, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="[font-family:'Lexend',Helvetica] font-medium text-white">
-                        {subject.name}
+                        {subject.subject_name}
                       </span>
-                      <span className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-sm">
-                        {subject.progress}%
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-sm">
+                          {subject.progress_percentage}%
+                        </span>
+                        <Button
+                          onClick={() => handleQuickStudy(subject.subject_name)}
+                          className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white text-xs px-2 py-1 h-6"
+                        >
+                          Study
+                        </Button>
+                      </div>
                     </div>
                     <div className="w-full bg-[#0f1419] rounded-full h-2">
                       <div 
-                        className="h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${subject.progress}%`,
-                          backgroundColor: subject.color
-                        }}
+                        className="h-2 rounded-full transition-all duration-300 bg-[#3f8cbf]"
+                        style={{ width: `${subject.progress_percentage}%` }}
                       />
                     </div>
                     <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
-                      Next: {subject.nextTopic}
+                      {subject.completed_topics}/{subject.total_topics} topics completed
                     </p>
                   </div>
                 ))}
@@ -200,13 +213,13 @@ export const DashboardOverview = (): JSX.Element => {
               <div className="space-y-3">
                 <Button 
                   className="w-full bg-[#3f8cbf] hover:bg-[#2d6a94] text-white justify-start [font-family:'Lexend',Helvetica]"
-                  onClick={() => window.location.href = '/dashboard/ai-tutor'}
+                  onClick={handleAITutorSession}
                 >
                   🤖 Ask AI Tutor
                 </Button>
                 <Button 
                   className="w-full bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] justify-start [font-family:'Lexend',Helvetica]"
-                  onClick={() => window.location.href = '/dashboard/tests'}
+                  onClick={() => handleTakeTest('Mathematics')}
                 >
                   📝 Take Practice Test
                 </Button>
@@ -290,6 +303,33 @@ export const DashboardOverview = (): JSX.Element => {
                 )}
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Progress Tracking Demo */}
+      <Card className="bg-gradient-to-r from-[#10b981] to-[#059669] border-[#10b981]">
+        <CardContent className="p-6 text-center">
+          <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-2">
+            🎯 Progress Tracking Active!
+          </h3>
+          <p className="[font-family:'Lexend',Helvetica] text-white/90 mb-4">
+            Your study sessions, test scores, and learning progress are now being tracked automatically. 
+            Try the "Study" buttons above to see your stats update in real-time!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              className="bg-white text-[#10b981] hover:bg-gray-100 [font-family:'Lexend',Helvetica] font-bold"
+              onClick={() => window.location.href = '/dashboard/progress'}
+            >
+              View Detailed Progress
+            </Button>
+            <Button 
+              className="bg-transparent border border-white text-white hover:bg-white/10 [font-family:'Lexend',Helvetica] font-bold"
+              onClick={() => handleQuickStudy('Mathematics')}
+            >
+              Try Quick Study Session
+            </Button>
           </div>
         </CardContent>
       </Card>

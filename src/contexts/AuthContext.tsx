@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { AuthService } from '../services/authService'
-import type { UserProfile } from '../lib/supabase'
+import { ProgressService } from '../services/progressService'
+import type { UserProfile, UserProgressStats, SubjectProgress } from '../lib/supabase'
 
 interface AuthContextType {
   user: User | null
   profile: UserProfile | null
+  progressStats: UserProgressStats | null
+  subjectProgress: SubjectProgress[]
   session: Session | null
   loading: boolean
   error: string | null
@@ -16,6 +19,8 @@ interface AuthContextType {
   updateProfile: (updates: Partial<UserProfile>, profilePicture?: File) => Promise<void>
   retryProfileLoad: () => Promise<void>
   markProfileCompleted: () => void
+  recordStudySession: (sessionType: 'lesson' | 'test' | 'ai_tutor' | 'materials', subject: string, durationMinutes: number, score?: number) => Promise<void>
+  refreshProgress: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,6 +40,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [progressStats, setProgressStats] = useState<UserProgressStats | null>(null)
+  const [subjectProgress, setSubjectProgress] = useState<SubjectProgress[]>([])
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -79,9 +86,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const loadUserProgress = async (userId: string) => {
+    try {
+      console.log('Loading progress for user:', userId)
+      
+      // Load progress stats
+      const stats = await ProgressService.getUserProgress(userId)
+      setProgressStats(stats)
+      
+      // Load subject progress
+      const subjects = await ProgressService.getSubjectProgress(userId)
+      setSubjectProgress(subjects)
+      
+      console.log('Progress loaded successfully')
+    } catch (error) {
+      console.error('Error loading user progress:', error)
+      // Don't set error for progress loading failures - it's not critical
+    }
+  }
+
+  const refreshProgress = async () => {
+    if (user) {
+      await loadUserProgress(user.id)
+    }
+  }
+
+  const recordStudySession = async (
+    sessionType: 'lesson' | 'test' | 'ai_tutor' | 'materials',
+    subject: string,
+    durationMinutes: number,
+    score?: number
+  ) => {
+    if (!user) throw new Error('No user logged in')
+    
+    try {
+      await ProgressService.recordStudySession(user.id, sessionType, subject, durationMinutes, score)
+      // Refresh progress after recording session
+      await refreshProgress()
+    } catch (error) {
+      console.error('Error recording study session:', error)
+      throw error
+    }
+  }
+
   const retryProfileLoad = async () => {
     if (user) {
       await loadUserProfile(user.id)
+      await loadUserProgress(user.id)
     }
   }
 
@@ -120,8 +171,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
             setIsNewUser(isNewUserFlag)
             
-            // Load profile in background, don't block UI
+            // Load profile and progress in background, don't block UI
             loadUserProfile(currentUser.id).catch(console.error)
+            loadUserProgress(currentUser.id).catch(console.error)
           }
         } catch (authError) {
           clearTimeout(timeoutId)
@@ -139,6 +191,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (mounted) {
           setUser(null)
           setProfile(null)
+          setProgressStats(null)
+          setSubjectProgress([])
           
           // Only set error for critical issues
           const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
@@ -172,10 +226,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
           setIsNewUser(isNewUserFlag)
           
-          // Load profile asynchronously
+          // Load profile and progress asynchronously
           loadUserProfile(session.user.id).catch(console.error)
+          loadUserProgress(session.user.id).catch(console.error)
         } else {
           setProfile(null)
+          setProgressStats(null)
+          setSubjectProgress([])
           setIsNewUser(false)
         }
         
@@ -243,6 +300,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await AuthService.signOut()
       setUser(null)
       setProfile(null)
+      setProgressStats(null)
+      setSubjectProgress([])
       setSession(null)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sign out failed'
@@ -272,9 +331,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedProfile = await AuthService.updateUserProfile(user.id, profileData, profilePicture)
       setProfile(updatedProfile)
       
-      // If this was a new user completing their profile, mark as completed
+      // If this was a new user completing their profile, mark as completed and initialize progress
       if (isNewUser) {
         markProfileCompleted()
+        // Initialize progress tracking for new user
+        await ProgressService.initializeUserProgress(user.id)
+        await ProgressService.initializeSubjects(user.id)
+        await loadUserProgress(user.id)
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
@@ -286,6 +349,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     profile,
+    progressStats,
+    subjectProgress,
     session,
     loading,
     error,
@@ -296,6 +361,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateProfile,
     retryProfileLoad,
     markProfileCompleted,
+    recordStudySession,
+    refreshProgress,
   }
 
   return (

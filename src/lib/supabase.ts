@@ -61,6 +61,11 @@ if (hasPlaceholderValues) {
             single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
           })
         })
+      }),
+      upsert: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+        })
       })
     })
   }
@@ -96,6 +101,11 @@ if (hasPlaceholderValues) {
             select: () => ({
               single: () => Promise.resolve({ data: null, error: { message: 'Invalid Supabase URL' } })
             })
+          })
+        }),
+        upsert: () => ({
+          select: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Invalid Supabase URL' } })
           })
         })
       })
@@ -185,6 +195,45 @@ export interface UserProfile {
   updated_at: string
 }
 
+export interface UserProgressStats {
+  id: string
+  user_id: string
+  study_streak_days: number
+  total_study_time_minutes: number
+  completed_lessons: number
+  total_tests_taken: number
+  average_test_score: number
+  ai_sessions_count: number
+  weekly_study_time: number
+  monthly_study_time: number
+  last_study_date?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface SubjectProgress {
+  id: string
+  user_id: string
+  subject_name: string
+  progress_percentage: number
+  completed_topics: number
+  total_topics: number
+  last_accessed: string
+  created_at: string
+  updated_at: string
+}
+
+export interface StudySession {
+  id: string
+  user_id: string
+  session_type: 'lesson' | 'test' | 'ai_tutor' | 'materials'
+  subject: string
+  duration_minutes: number
+  score?: number
+  session_date: string
+  created_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -192,6 +241,21 @@ export interface Database {
         Row: UserProfile
         Insert: Omit<UserProfile, 'created_at' | 'updated_at'>
         Update: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>
+      }
+      user_progress_stats: {
+        Row: UserProgressStats
+        Insert: Omit<UserProgressStats, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserProgressStats, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+      }
+      subject_progress: {
+        Row: SubjectProgress
+        Insert: Omit<SubjectProgress, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<SubjectProgress, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+      }
+      study_sessions: {
+        Row: StudySession
+        Insert: Omit<StudySession, 'id' | 'created_at'>
+        Update: Partial<Omit<StudySession, 'id' | 'user_id' | 'created_at'>>
       }
     }
   }
