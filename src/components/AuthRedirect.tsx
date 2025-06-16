@@ -9,14 +9,13 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
   const { user, profile, loading } = useAuth()
 
   useEffect(() => {
-    // Only redirect if user is authenticated and we're on a public page
+    // Only redirect if user is authenticated and we're on auth pages
     if (!loading && user) {
       const currentPath = window.location.pathname
-      const publicPaths = ['/', '/features', '/about', '/contact', '/pricing', '/privacy', '/terms', '/login', '/signup']
+      const authPages = ['/login', '/signup']
       
-      // If user is on a public page, redirect appropriately
-      if (publicPaths.includes(currentPath)) {
-        // Always redirect to dashboard - profile completion is handled separately
+      // If user is on auth pages, redirect to dashboard
+      if (authPages.includes(currentPath)) {
         window.location.href = '/dashboard'
       }
     }
