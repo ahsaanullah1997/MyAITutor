@@ -61,7 +61,9 @@ export const AccountActionsPage = (): JSX.Element => {
     }
   };
 
+  // Fixed Contact Us handler
   const handleContactUs = () => {
+    console.log('Redirecting to contact page...');
     window.location.href = '/contact';
   };
 
