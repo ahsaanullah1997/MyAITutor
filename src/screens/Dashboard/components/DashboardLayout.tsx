@@ -12,6 +12,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // Get current page from URL
   const currentPath = window.location.pathname;
@@ -32,6 +33,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
     if (savedCollapsedState !== null) {
       setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+
+    // Load theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      // Default to dark mode
+      document.documentElement.classList.add('dark');
     }
   }, []);
 
@@ -146,6 +157,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   // Handle sidebar collapse toggle
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    const newTheme = isDarkMode ? 'light' : 'dark';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   // Close dropdowns when clicking outside
@@ -413,6 +432,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                         >
                           <span className="text-base">⚙️</span>
                           Settings
+                        </button>
+
+                        {/* Theme Toggle Button */}
+                        <button
+                          onClick={() => {
+                            handleThemeToggle();
+                            setProfileDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
+                        >
+                          <span className="text-base">{isDarkMode ? '☀️' : '🌙'}</span>
+                          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                         </button>
                         
                         <button
