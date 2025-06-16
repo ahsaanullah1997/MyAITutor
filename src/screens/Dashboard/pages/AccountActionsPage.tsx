@@ -61,10 +61,10 @@ export const AccountActionsPage = (): JSX.Element => {
     }
   };
 
-  // Fixed Contact Us handler
-  const handleContactUs = () => {
-    console.log('Redirecting to contact page...');
-    window.location.href = '/contact';
+  // Updated Help Center handler
+  const handleHelpCenter = () => {
+    console.log('Redirecting to help center...');
+    window.location.href = '/help';
   };
 
   return (
@@ -277,7 +277,7 @@ export const AccountActionsPage = (): JSX.Element => {
                     Get help with your account or technical issues
                   </p>
                   <Button 
-                    onClick={handleContactUs}
+                    onClick={() => window.location.href = '/contact'}
                     className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white [font-family:'Lexend',Helvetica] font-medium"
                   >
                     Contact Us
@@ -291,7 +291,10 @@ export const AccountActionsPage = (): JSX.Element => {
                   <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-sm mb-4">
                     Browse our knowledge base and FAQs
                   </p>
-                  <Button className="bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] [font-family:'Lexend',Helvetica] font-medium">
+                  <Button 
+                    onClick={handleHelpCenter}
+                    className="bg-transparent border border-[#3d4f5b] text-white hover:bg-[#2a3540] [font-family:'Lexend',Helvetica] font-medium"
+                  >
                     Visit Help Center
                   </Button>
                 </div>

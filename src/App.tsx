@@ -9,6 +9,7 @@ import { ContactPage } from "./screens/ContactPage/index.ts";
 import { PricingPage } from "./screens/PricingPage/index.ts";
 import { PrivacyPolicyPage } from "./screens/PrivacyPolicyPage/index.ts";
 import { TermsOfServicePage } from "./screens/TermsOfServicePage/index.ts";
+import { HelpCenterPage } from "./screens/HelpCenterPage/index.ts";
 import { SignUpPage, LoginPage, CompleteProfilePage } from "./screens/AuthPage/index.ts";
 import { 
   Dashboard, 
@@ -36,6 +37,7 @@ export const App = (): JSX.Element => {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/help" element={<HelpCenterPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/complete-profile" element={<CompleteProfilePage />} />
