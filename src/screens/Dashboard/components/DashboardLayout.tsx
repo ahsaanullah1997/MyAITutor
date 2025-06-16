@@ -153,7 +153,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors flex-shrink-0"
-              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <span className="text-lg">
                 {sidebarCollapsed ? '→' : '←'}
@@ -179,12 +178,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <li key={item.name}>
                 <a
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
                   }`}
-                  title={!isMobile && sidebarCollapsed ? item.name : undefined}
                 >
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -192,13 +190,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   }`}>
                     {item.name}
                   </span>
-                  
-                  {/* Tooltip for collapsed state */}
-                  {!isMobile && sidebarCollapsed && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-[#0f1419] text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                      {item.name}
-                    </div>
-                  )}
                 </a>
               </li>
             ))}
@@ -211,12 +202,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="px-4 py-2">
             <a
               href="/dashboard/settings"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 currentPath === "/dashboard/settings"
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
               }`}
-              title={!isMobile && sidebarCollapsed ? "Settings" : undefined}
             >
               <span className="text-lg flex-shrink-0">⚙️</span>
               <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -224,13 +214,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               }`}>
                 Settings
               </span>
-              
-              {/* Tooltip for collapsed state */}
-              {!isMobile && sidebarCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-[#0f1419] text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Settings
-                </div>
-              )}
             </a>
           </div>
 
@@ -270,7 +253,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
                 !isMobile && sidebarCollapsed ? 'px-2' : 'px-4'
               }`}
-              title={!isMobile && sidebarCollapsed ? "Sign Out" : undefined}
             >
               <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
                 {!isMobile && sidebarCollapsed ? '🚪' : '🚪'}
