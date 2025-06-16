@@ -323,8 +323,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               }`}
               title={!isMobile && sidebarCollapsed ? 'Sign Out' : undefined}
             >
-              <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
-                {!isMobile && sidebarCollapsed ? '🚪' : '🚪'}
+              <span className={`flex items-center justify-center ${!isMobile && sidebarCollapsed ? 'text-base' : 'text-sm'}`}>
+                🚪
               </span>
               <span className={`transition-all duration-300 ${
                 !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
