@@ -182,7 +182,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
-                  }`}
+                  } ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}
                 >
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -206,7 +206,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 currentPath === "/dashboard/settings"
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
-              }`}
+              } ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}
             >
               <span className="text-lg flex-shrink-0">⚙️</span>
               <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -250,8 +250,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="p-4">
             <Button
               onClick={handleSignOut}
-              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-                !isMobile && sidebarCollapsed ? 'px-2' : 'px-4'
+              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
+                !isMobile && sidebarCollapsed ? 'px-2 justify-center' : 'px-4 justify-center'
               }`}
             >
               <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
