@@ -11,6 +11,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Get current page from URL
@@ -78,6 +79,34 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     }
   ];
 
+  // Settings menu items
+  const settingsMenuItems = [
+    {
+      name: "Profile Information",
+      icon: "👤",
+      href: "#profile-information",
+      description: "Manage your personal details and profile picture"
+    },
+    {
+      name: "Plan & Billing",
+      icon: "💳",
+      href: "#plan-billing",
+      description: "View subscription details and billing information"
+    },
+    {
+      name: "Notifications",
+      icon: "🔔",
+      href: "#notifications",
+      description: "Configure your notification preferences"
+    },
+    {
+      name: "Account Actions",
+      icon: "⚙️",
+      href: "#account-actions",
+      description: "Security settings and account management"
+    }
+  ];
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -99,10 +128,30 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     setProfileDropdownOpen(!profileDropdownOpen);
   };
 
+  // Handle settings menu toggle
+  const handleSettingsMenuToggle = () => {
+    setSettingsMenuOpen(!settingsMenuOpen);
+  };
+
   // Handle navigation click - don't expand sidebar
   const handleNavigationClick = (href: string) => {
     // Navigate to the page without changing sidebar state
     window.location.href = href;
+  };
+
+  // Handle settings menu item click
+  const handleSettingsMenuClick = (href: string) => {
+    setSettingsMenuOpen(false);
+    
+    // Scroll to the section if it's an anchor link
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      window.location.href = href;
+    }
   };
 
   // Handle sidebar collapse toggle
@@ -110,23 +159,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.profile-dropdown')) {
         setProfileDropdownOpen(false);
       }
+      if (!target.closest('.settings-menu')) {
+        setSettingsMenuOpen(false);
+      }
     };
 
-    if (profileDropdownOpen) {
+    if (profileDropdownOpen || settingsMenuOpen) {
       document.addEventListener('click', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [profileDropdownOpen]);
+  }, [profileDropdownOpen, settingsMenuOpen]);
 
   // Calculate sidebar width based on state
   const getSidebarWidth = () => {
@@ -312,10 +364,64 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </div>
             </button>
 
-            {/* Page Title */}
-            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl truncate">
-              {getPageTitle()}
-            </h1>
+            {/* Page Title and Settings Menu */}
+            <div className="flex items-center gap-4">
+              <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl truncate">
+                {getPageTitle()}
+              </h1>
+              
+              {/* Settings Menu - Only show on settings page */}
+              {currentPath === "/dashboard/settings" && (
+                <div className="relative settings-menu">
+                  <button
+                    onClick={handleSettingsMenuToggle}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#0f1419] border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg transition-colors [font-family:'Lexend',Helvetica] font-medium text-sm"
+                  >
+                    <span className="text-base">📋</span>
+                    <span className="hidden sm:inline">Menu</span>
+                    <span className={`text-xs transition-transform duration-200 ${settingsMenuOpen ? 'rotate-180' : ''}`}>
+                      ▼
+                    </span>
+                  </button>
+
+                  {/* Settings Dropdown Menu */}
+                  {settingsMenuOpen && (
+                    <div className="absolute left-0 top-full mt-2 w-72 bg-[#1e282d] border border-[#3d4f5b] rounded-lg shadow-lg z-50">
+                      <div className="py-2">
+                        <div className="px-4 py-2 border-b border-[#3d4f5b]">
+                          <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica]">
+                            Settings Menu
+                          </p>
+                          <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica]">
+                            Jump to any section
+                          </p>
+                        </div>
+                        
+                        {settingsMenuItems.map((item, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleSettingsMenuClick(item.href)}
+                            className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-[#2a3540] transition-colors group"
+                          >
+                            <span className="text-lg flex-shrink-0 group-hover:scale-110 transition-transform">
+                              {item.icon}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] group-hover:text-[#3f8cbf] transition-colors">
+                                {item.name}
+                              </p>
+                              <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] mt-1 leading-relaxed">
+                                {item.description}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Quick Actions */}
             <div className="flex items-center gap-2">
