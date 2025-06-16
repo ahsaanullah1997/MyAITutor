@@ -270,12 +270,12 @@ export const AccountActionsPage = (): JSX.Element => {
                   <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-sm mb-4">
                     Get help with your account or technical issues
                   </p>
-                  <Button 
+                  <button 
                     onClick={() => window.location.href = '/contact'}
-                    className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white [font-family:'Lexend',Helvetica] font-medium"
+                    className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white [font-family:'Lexend',Helvetica] font-medium inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-9 px-4 py-2"
                   >
                     Contact Us
-                  </Button>
+                  </button>
                 </div>
 
                 <div className="p-4 bg-[#0f1419] rounded-lg text-center">
