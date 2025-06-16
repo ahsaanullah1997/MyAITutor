@@ -249,6 +249,18 @@ export class AuthService {
           }
         }
         
+        // Check if this is a PGRST116 error (no rows found) in the fetchError
+        if (fetchError && typeof fetchError === 'object' && 'code' in fetchError && fetchError.code === 'PGRST116') {
+          console.log('No profile found for user (from fetchError), returning null')
+          return null
+        }
+        
+        // Also check if the error message indicates no rows found
+        if (fetchError instanceof Error && fetchError.message.includes('JSON object requested, multiple (or no) rows returned')) {
+          console.log('No profile found for user (from error message), returning null')
+          return null
+        }
+        
         throw fetchError
       }
     } catch (error) {
