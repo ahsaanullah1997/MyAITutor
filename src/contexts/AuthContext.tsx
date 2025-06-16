@@ -9,11 +9,13 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   error: string | null
+  isNewUser: boolean
   signUp: (data: any) => Promise<void>
   signIn: (data: any) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<UserProfile>, profilePicture?: File) => Promise<void>
   retryProfileLoad: () => Promise<void>
+  markProfileCompleted: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isNewUser, setIsNewUser] = useState(false)
 
   const loadUserProfile = async (userId: string) => {
     try {
@@ -82,6 +85,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const markProfileCompleted = () => {
+    setIsNewUser(false)
+    // Clear the flag from localStorage
+    localStorage.removeItem('isNewUser')
+  }
+
   useEffect(() => {
     let mounted = true
 
@@ -107,6 +116,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(currentUser)
           
           if (currentUser) {
+            // Check if this is a new user
+            const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
+            setIsNewUser(isNewUserFlag)
+            
             // Load profile in background, don't block UI
             loadUserProfile(currentUser.id).catch(console.error)
           }
@@ -155,10 +168,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null)
         
         if (session?.user) {
+          // Check if this is a new user (from sign up)
+          const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
+          setIsNewUser(isNewUserFlag)
+          
           // Load profile asynchronously
           loadUserProfile(session.user.id).catch(console.error)
         } else {
           setProfile(null)
+          setIsNewUser(false)
         }
         
         // Set loading to false immediately for auth state changes
@@ -176,10 +194,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Mark as new user before sign up
+      localStorage.setItem('isNewUser', 'true')
+      setIsNewUser(true)
+      
       await AuthService.signUp(data)
       // Don't set loading to false here - let auth state change handle it
     } catch (error) {
       setLoading(false)
+      // Clear new user flag on error
+      localStorage.removeItem('isNewUser')
+      setIsNewUser(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
       setError(errorMessage)
       throw error
@@ -190,6 +216,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Clear any existing new user flag for sign in
+      localStorage.removeItem('isNewUser')
+      setIsNewUser(false)
+      
       await AuthService.signIn(data)
       // Don't set loading to false here - let auth state change handle it
     } catch (error) {
@@ -204,6 +235,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Clear new user flag on sign out
+      localStorage.removeItem('isNewUser')
+      setIsNewUser(false)
+      
       await AuthService.signOut()
       setUser(null)
       setProfile(null)
@@ -235,6 +271,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       const updatedProfile = await AuthService.updateUserProfile(user.id, profileData, profilePicture)
       setProfile(updatedProfile)
+      
+      // If this was a new user completing their profile, mark as completed
+      if (isNewUser) {
+        markProfileCompleted()
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
       setError(errorMessage)
@@ -248,11 +289,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     loading,
     error,
+    isNewUser,
     signUp,
     signIn,
     signOut,
     updateProfile,
     retryProfileLoad,
+    markProfileCompleted,
   }
 
   return (

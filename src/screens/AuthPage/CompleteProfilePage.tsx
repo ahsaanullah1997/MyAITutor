@@ -1,11 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../contexts/AuthContext";
 
 export const CompleteProfilePage = (): JSX.Element => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isNewUser, markProfileCompleted } = useAuth();
   const [formData, setFormData] = useState({
     grade: '',
     board: '',
@@ -16,6 +16,20 @@ export const CompleteProfilePage = (): JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Redirect if not a new user or no user
+  useEffect(() => {
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+    
+    // If not a new user, redirect to dashboard
+    if (!isNewUser) {
+      window.location.href = '/dashboard';
+      return;
+    }
+  }, [user, isNewUser]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -117,6 +131,8 @@ export const CompleteProfilePage = (): JSX.Element => {
   };
 
   const handleSkip = () => {
+    // Mark profile as completed even if skipped
+    markProfileCompleted();
     // Allow users to skip profile completion and go to dashboard
     window.location.href = '/dashboard';
   };
@@ -177,10 +193,16 @@ export const CompleteProfilePage = (): JSX.Element => {
     return ["Punjab Board", "Sindh Board"].includes(board);
   };
 
-  // Redirect to login if no user
-  if (!user) {
-    window.location.href = '/login';
-    return <div></div>;
+  // Show loading if checking user state
+  if (!user || !isNewUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0f1419]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-[#3f8cbf] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white [font-family:'Lexend',Helvetica]">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

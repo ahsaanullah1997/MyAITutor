@@ -14,19 +14,13 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
       const currentPath = window.location.pathname
       const publicPaths = ['/', '/features', '/about', '/contact', '/pricing', '/privacy', '/terms', '/login', '/signup']
       
-      // If user is on a public page, redirect to dashboard or profile completion
+      // If user is on a public page, redirect appropriately
       if (publicPaths.includes(currentPath)) {
-        // Check if user has completed their profile
-        if (!profile || !profile.grade) {
-          // User hasn't completed profile, redirect to profile completion
-          window.location.href = '/complete-profile'
-        } else {
-          // User has completed profile, redirect to dashboard
-          window.location.href = '/dashboard'
-        }
+        // Always redirect to dashboard - profile completion is handled separately
+        window.location.href = '/dashboard'
       }
     }
-  }, [user, profile, loading])
+  }, [user, loading])
 
   // Show loading while checking auth state
   if (loading) {
