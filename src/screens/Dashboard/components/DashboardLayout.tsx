@@ -78,6 +78,38 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     }
   ];
 
+  // Settings menu items
+  const settingsMenuItems = [
+    {
+      name: "Profile Information",
+      href: "/dashboard/settings/profile",
+      icon: "👤",
+      description: "Edit your personal details and profile picture",
+      active: currentPath === "/dashboard/settings/profile"
+    },
+    {
+      name: "Plan & Billing",
+      href: "/dashboard/settings/billing",
+      icon: "💳",
+      description: "Manage subscription and billing details",
+      active: currentPath === "/dashboard/settings/billing"
+    },
+    {
+      name: "Notifications",
+      href: "/dashboard/settings/notifications",
+      icon: "🔔",
+      description: "Configure your notification preferences",
+      active: currentPath === "/dashboard/settings/notifications"
+    },
+    {
+      name: "Account Actions",
+      href: "/dashboard/settings/account",
+      icon: "⚙️",
+      description: "Security settings and account management",
+      active: currentPath === "/dashboard/settings/account"
+    }
+  ];
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -139,6 +171,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     if (isMobile) return 'w-64'; // Always full width on mobile
     return sidebarCollapsed ? 'w-16' : 'w-64';
   };
+
+  // Check if we're on a settings page
+  const isSettingsPage = currentPath.startsWith("/dashboard/settings");
 
   return (
     <div className="min-h-screen bg-[#0f1419] flex">
@@ -397,6 +432,30 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </div>
             </div>
           </div>
+
+          {/* Settings Menu - Only show on settings pages */}
+          {isSettingsPage && (
+            <div className="mt-4 border-t border-[#3d4f5b] pt-4">
+              <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                {settingsMenuItems.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => handleNavigationClick(item.href)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                      item.active
+                        ? 'bg-[#3f8cbf] text-white'
+                        : 'bg-[#0f1419] border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    <span className="[font-family:'Lexend',Helvetica] font-medium text-sm">
+                      {item.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Page Content */}
