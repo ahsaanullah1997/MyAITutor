@@ -212,11 +212,12 @@ export const SettingsPage = (): JSX.Element => {
         grade: formData.grade,
         board: formData.board,
         area: formData.area,
-        // In a real app, you'd upload the profile picture to storage first
-        // profile_picture_url: uploadedImageUrl
-      });
+      }, formData.profilePicture || undefined);
+      
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       setIsEditing(false);
+      setProfilePicturePreview(null); // Clear preview after successful upload
+      setFormData(prev => ({ ...prev, profilePicture: null })); // Clear file from form
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
     } finally {
@@ -575,7 +576,14 @@ export const SettingsPage = (): JSX.Element => {
                     disabled={loading}
                     className="bg-[#3f8cbf] hover:bg-[#2d6a94] text-white px-6 py-3 [font-family:'Lexend',Helvetica] font-medium disabled:opacity-50"
                   >
-                    {loading ? 'Updating...' : 'Update Profile'}
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        {formData.profilePicture ? 'Uploading...' : 'Updating...'}
+                      </div>
+                    ) : (
+                      'Update Profile'
+                    )}
                   </Button>
                 </form>
               ) : (

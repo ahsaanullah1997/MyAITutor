@@ -12,7 +12,7 @@ interface AuthContextType {
   signUp: (data: any) => Promise<void>
   signIn: (data: any) => Promise<void>
   signOut: () => Promise<void>
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>
+  updateProfile: (updates: Partial<UserProfile>, profilePicture?: File) => Promise<void>
   retryProfileLoad: () => Promise<void>
 }
 
@@ -217,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Partial<UserProfile>, profilePicture?: File) => {
     if (!user) throw new Error('No user logged in')
     
     try {
@@ -233,7 +233,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         grade: updates.grade || profile?.grade || ''
       }
       
-      const updatedProfile = await AuthService.updateUserProfile(user.id, profileData)
+      const updatedProfile = await AuthService.updateUserProfile(user.id, profileData, profilePicture)
       setProfile(updatedProfile)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'

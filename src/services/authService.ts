@@ -17,6 +17,61 @@ export interface SignInData {
 }
 
 export class AuthService {
+  // Upload profile picture to Supabase storage
+  static async uploadProfilePicture(userId: string, file: File): Promise<string> {
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userId}-${Date.now()}.${fileExt}`
+      const filePath = `profile-pictures/${fileName}`
+
+      // Upload file to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (error) {
+        console.error('Storage upload error:', error)
+        throw new Error('Failed to upload profile picture')
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath)
+
+      return publicUrl
+    } catch (error) {
+      console.error('Profile picture upload error:', error)
+      throw error
+    }
+  }
+
+  // Delete old profile picture from storage
+  static async deleteProfilePicture(url: string): Promise<void> {
+    try {
+      // Extract file path from URL
+      const urlParts = url.split('/profile-pictures/')
+      if (urlParts.length < 2) return
+
+      const filePath = `profile-pictures/${urlParts[1]}`
+
+      const { error } = await supabase.storage
+        .from('profile-pictures')
+        .remove([filePath])
+
+      if (error) {
+        console.error('Storage delete error:', error)
+        // Don't throw error for delete failures - it's not critical
+      }
+    } catch (error) {
+      console.error('Profile picture delete error:', error)
+      // Don't throw error for delete failures
+    }
+  }
+
   // Sign up new user with optimized flow
   static async signUp(data: SignUpData) {
     try {
@@ -273,12 +328,31 @@ export class AuthService {
     }
   }
 
-  // Update user profile
-  static async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+  // Update user profile with profile picture support
+  static async updateUserProfile(userId: string, updates: Partial<UserProfile>, profilePicture?: File) {
     try {
+      let profilePictureUrl = updates.profile_picture_url
+
+      // Handle profile picture upload
+      if (profilePicture) {
+        // Delete old profile picture if exists
+        if (updates.profile_picture_url) {
+          await this.deleteProfilePicture(updates.profile_picture_url)
+        }
+
+        // Upload new profile picture
+        profilePictureUrl = await this.uploadProfilePicture(userId, profilePicture)
+      }
+
+      // Update profile with new data
+      const profileData = {
+        ...updates,
+        ...(profilePictureUrl && { profile_picture_url: profilePictureUrl })
+      }
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .upsert({ id: userId, ...updates }, { onConflict: 'id' })
+        .upsert({ id: userId, ...profileData }, { onConflict: 'id' })
         .select()
         .single()
 

@@ -100,13 +100,12 @@ export const CompleteProfilePage = (): JSX.Element => {
     }
 
     try {
-      // For now, we'll just update the basic profile info
-      // In a real app, you'd also upload the profile picture to storage
+      // Update profile with all data including profile picture
       await updateProfile({
         grade: formData.grade,
         board: formData.board,
         area: formData.area,
-      });
+      }, formData.profilePicture || undefined);
       
       // Redirect to dashboard
       window.location.href = '/dashboard';
@@ -331,7 +330,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Completing Profile...
+                        {formData.profilePicture ? 'Uploading...' : 'Completing Profile...'}
                       </div>
                     ) : (
                       'Complete Profile'
