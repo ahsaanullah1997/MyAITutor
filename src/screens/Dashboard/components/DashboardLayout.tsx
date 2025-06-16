@@ -10,6 +10,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, profile, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   // Get current page from URL
@@ -98,18 +99,38 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1e282d] border-r border-[#3d4f5b] transform ${
+      <div className={`fixed inset-y-0 left-0 z-50 ${
+        sidebarCollapsed ? 'w-16' : 'w-64'
+      } bg-[#1e282d] border-r border-[#3d4f5b] transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}>
+      } transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}>
         
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-[#3d4f5b] cursor-pointer" onClick={() => window.location.href = '/dashboard'}>
-          <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center">
-            <div className="w-3 h-3 bg-white rounded-full" />
+        {/* Logo and Collapse Button */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#3d4f5b]">
+          <div 
+            className={`flex items-center gap-3 cursor-pointer transition-opacity duration-300 ${
+              sidebarCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            }`}
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center">
+              <div className="w-3 h-3 bg-white rounded-full" />
+            </div>
+            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg whitespace-nowrap">
+              MyEduPro
+            </h1>
           </div>
-          <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg">
-            MyEduPro
-          </h1>
+          
+          {/* Collapse Button - Hidden on mobile */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="hidden lg:flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <span className="text-lg">
+              {sidebarCollapsed ? '→' : '←'}
+            </span>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -119,14 +140,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <li key={item.name}>
                 <a
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
                   }`}
+                  title={sidebarCollapsed ? item.name : undefined}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="[font-family:'Lexend',Helvetica] font-medium text-sm">
+                  <span className="text-lg flex-shrink-0">{item.icon}</span>
+                  <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
+                    sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+                  }`}>
                     {item.name}
                   </span>
                 </a>
@@ -146,18 +170,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
               }`}
+              title={sidebarCollapsed ? "Settings" : undefined}
             >
-              <span className="text-lg">⚙️</span>
-              <span className="[font-family:'Lexend',Helvetica] font-medium text-sm">
+              <span className="text-lg flex-shrink-0">⚙️</span>
+              <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
+                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+              }`}>
                 Settings
               </span>
             </a>
           </div>
 
           {/* User Profile */}
-          <div className="px-6 py-4 border-t border-[#3d4f5b]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden">
+          <div className={`px-6 py-4 border-t border-[#3d4f5b] transition-all duration-300 ${
+            sidebarCollapsed ? 'px-2' : 'px-6'
+          }`}>
+            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+              <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 {profile?.profile_picture_url ? (
                   <img 
                     src={profile.profile_picture_url} 
@@ -170,7 +199,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className={`flex-1 min-w-0 transition-all duration-300 ${
+                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
+              }`}>
                 <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
                   {profile?.first_name} {profile?.last_name}
                 </p>
@@ -185,9 +216,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="p-4">
             <Button
               onClick={handleSignOut}
-              className="w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm"
+              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
+                sidebarCollapsed ? 'px-2' : 'px-4'
+              }`}
+              title={sidebarCollapsed ? "Sign Out" : undefined}
             >
-              Sign Out
+              <span className={sidebarCollapsed ? 'text-lg' : 'hidden'}>🚪</span>
+              <span className={`transition-all duration-300 ${
+                sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden ml-0' : 'opacity-100 w-auto ml-0'
+              }`}>
+                Sign Out
+              </span>
             </Button>
           </div>
         </div>
