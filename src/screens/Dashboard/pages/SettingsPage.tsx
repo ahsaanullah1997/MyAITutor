@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "../components/DashboardLayout";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -11,11 +11,11 @@ export const SettingsPage = (): JSX.Element => {
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
-    firstName: profile?.first_name || '',
-    lastName: profile?.last_name || '',
-    grade: profile?.grade || '',
-    board: profile?.board || '',
-    area: profile?.area || '',
+    firstName: '',
+    lastName: '',
+    grade: '',
+    board: '',
+    area: '',
     profilePicture: null as File | null,
     notifications: true,
     emailUpdates: true,
@@ -24,6 +24,20 @@ export const SettingsPage = (): JSX.Element => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  // Update form data when profile changes or when entering edit mode
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        grade: profile.grade || '',
+        board: profile.board || '',
+        area: profile.area || '',
+      }));
+    }
+  }, [profile]);
 
   // Mock current subscription - in real app this would come from user data
   const currentSubscription = {
@@ -157,6 +171,26 @@ export const SettingsPage = (): JSX.Element => {
       
       return newData;
     });
+  };
+
+  const handleEditToggle = () => {
+    if (!isEditing) {
+      // When entering edit mode, ensure form data is current
+      setFormData(prev => ({
+        ...prev,
+        firstName: profile?.first_name || '',
+        lastName: profile?.last_name || '',
+        grade: profile?.grade || '',
+        board: profile?.board || '',
+        area: profile?.area || '',
+      }));
+    } else {
+      // When canceling edit, clear any preview and file selection
+      setProfilePicturePreview(null);
+      setFormData(prev => ({ ...prev, profilePicture: null }));
+      setMessage(null);
+    }
+    setIsEditing(!isEditing);
   };
 
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -402,7 +436,7 @@ export const SettingsPage = (): JSX.Element => {
                   Profile Information
                 </h3>
                 <Button
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={handleEditToggle}
                   className="bg-transparent border border-[#3d4f5b] text-[#3f8cbf] hover:bg-[#3f8cbf] hover:text-white [font-family:'Lexend',Helvetica] font-medium text-sm px-4 py-2"
                 >
                   {isEditing ? 'Cancel' : 'Edit'}
