@@ -1,1 +1,1 @@
-export { HelpCenterPage } from "./HelpCenterPage";
+export { HelpCenterPage } from "./HelpCenterPage.tsx";
