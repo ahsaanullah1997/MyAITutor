@@ -16,7 +16,11 @@ import {
   ProgressPage, 
   StudyMaterialsPage, 
   TestsPage, 
-  SettingsPage 
+  SettingsPage,
+  ProfileInformationPage,
+  PlanBillingPage,
+  NotificationsPage,
+  AccountActionsPage
 } from "./screens/Dashboard/index.ts";
 
 export const App = (): JSX.Element => {
@@ -41,6 +45,10 @@ export const App = (): JSX.Element => {
             <Route path="/dashboard/materials" element={<StudyMaterialsPage />} />
             <Route path="/dashboard/tests" element={<TestsPage />} />
             <Route path="/dashboard/settings" element={<SettingsPage />} />
+            <Route path="/dashboard/settings/profile" element={<ProfileInformationPage />} />
+            <Route path="/dashboard/settings/billing" element={<PlanBillingPage />} />
+            <Route path="/dashboard/settings/notifications" element={<NotificationsPage />} />
+            <Route path="/dashboard/settings/account" element={<AccountActionsPage />} />
           </Routes>
         </AuthRedirect>
       </Router>

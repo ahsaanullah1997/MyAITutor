@@ -4,3 +4,7 @@ export { ProgressPage } from "./pages/ProgressPage";
 export { StudyMaterialsPage } from "./pages/StudyMaterialsPage";
 export { TestsPage } from "./pages/TestsPage";
 export { SettingsPage } from "./pages/SettingsPage";
+export { ProfileInformationPage } from "./pages/ProfileInformationPage";
+export { PlanBillingPage } from "./pages/PlanBillingPage";
+export { NotificationsPage } from "./pages/NotificationsPage";
+export { AccountActionsPage } from "./pages/AccountActionsPage";
