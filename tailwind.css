@@ -43,6 +43,17 @@
     --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
+
+    /* Custom theme variables for light mode */
+    --theme-bg-primary: 255 255 255;
+    --theme-bg-secondary: 248 250 252;
+    --theme-bg-tertiary: 241 245 249;
+    --theme-text-primary: 15 23 42;
+    --theme-text-secondary: 71 85 105;
+    --theme-text-muted: 100 116 139;
+    --theme-border: 226 232 240;
+    --theme-accent: 63 140 191;
+    --theme-accent-hover: 45 106 144;
   }
 
   .dark {
@@ -76,6 +87,17 @@
     --ring: 216 34% 17%;
 
     --radius: 0.5rem;
+
+    /* Custom theme variables for dark mode */
+    --theme-bg-primary: 15 20 25;
+    --theme-bg-secondary: 30 40 45;
+    --theme-bg-tertiary: 61 79 91;
+    --theme-text-primary: 255 255 255;
+    --theme-text-secondary: 158 175 191;
+    --theme-text-muted: 158 175 191;
+    --theme-border: 30 40 45;
+    --theme-accent: 63 140 191;
+    --theme-accent-hover: 45 106 144;
   }
 }
 
@@ -87,5 +109,44 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Theme-aware utility classes */
+@layer utilities {
+  .theme-bg-primary {
+    background-color: rgb(var(--theme-bg-primary));
+  }
+  
+  .theme-bg-secondary {
+    background-color: rgb(var(--theme-bg-secondary));
+  }
+  
+  .theme-bg-tertiary {
+    background-color: rgb(var(--theme-bg-tertiary));
+  }
+  
+  .theme-text-primary {
+    color: rgb(var(--theme-text-primary));
+  }
+  
+  .theme-text-secondary {
+    color: rgb(var(--theme-text-secondary));
+  }
+  
+  .theme-text-muted {
+    color: rgb(var(--theme-text-muted));
+  }
+  
+  .theme-border {
+    border-color: rgb(var(--theme-border));
+  }
+  
+  .theme-accent {
+    background-color: rgb(var(--theme-accent));
+  }
+  
+  .theme-accent-hover:hover {
+    background-color: rgb(var(--theme-accent-hover));
   }
 }

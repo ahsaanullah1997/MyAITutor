@@ -196,33 +196,33 @@ export const CompleteProfilePage = (): JSX.Element => {
   // Show loading if checking user state
   if (!user || !isNewUser) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0f1419]">
+      <div className="flex items-center justify-center min-h-screen theme-bg-primary">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-4 border-[#3f8cbf] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-white [font-family:'Lexend',Helvetica]">Loading...</p>
+          <p className="theme-text-primary [font-family:'Lexend',Helvetica]">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+    <main className="flex flex-col w-full theme-bg-primary min-h-screen">
       <HeroSection />
       
-      <section className="flex items-center justify-center px-4 md:px-6 lg:px-10 py-8 md:py-20 w-full bg-[#0f1419] min-h-[calc(100vh-80px)]">
+      <section className="flex items-center justify-center px-4 md:px-6 lg:px-10 py-8 md:py-20 w-full theme-bg-primary min-h-[calc(100vh-80px)]">
         <div className="flex flex-col max-w-[480px] w-full">
           {/* Header */}
           <div className="text-center mb-6 md:mb-8">
-            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-3 md:mb-4">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-3 md:mb-4">
               Complete Your Profile
             </h1>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-sm md:text-base tracking-[0] leading-6">
               Help us personalize your learning experience by completing your profile
             </p>
           </div>
 
           {/* Profile Completion Form */}
-          <Card className="bg-[#1e282d] border-[#3d4f5b]">
+          <Card className="theme-bg-secondary theme-border">
             <CardContent className="p-4 md:p-8">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
                 {/* Error Message */}
@@ -237,7 +237,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                 {/* Profile Picture */}
                 <div className="flex flex-col gap-4 items-center">
                   <div className="relative">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-[#0f1419] border-2 border-[#3d4f5b] flex items-center justify-center">
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden theme-bg-primary theme-border border-2 flex items-center justify-center">
                       {profilePicturePreview ? (
                         <img 
                           src={profilePicturePreview} 
@@ -245,7 +245,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="text-[#9eafbf] text-2xl md:text-3xl">
+                        <div className="theme-text-muted text-2xl md:text-3xl">
                           👤
                         </div>
                       )}
@@ -259,10 +259,10 @@ export const CompleteProfilePage = (): JSX.Element => {
                     </button>
                   </div>
                   <div className="text-center">
-                    <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm mb-1">
+                    <p className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-sm mb-1">
                       Profile Picture
                     </p>
-                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
+                    <p className="[font-family:'Lexend',Helvetica] theme-text-muted text-xs">
                       Click the camera icon to upload a photo
                     </p>
                   </div>
@@ -277,7 +277,7 @@ export const CompleteProfilePage = (): JSX.Element => {
 
                 {/* Grade Selection */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
                     Current Grade/Level *
                   </label>
                   <select
@@ -285,11 +285,11 @@ export const CompleteProfilePage = (): JSX.Element => {
                     value={formData.grade}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                   >
-                    <option value="" className="text-[#9eafbf]">Select your grade/level</option>
+                    <option value="" className="theme-text-muted">Select your grade/level</option>
                     {grades.map((grade) => (
-                      <option key={grade} value={grade} className="text-white bg-[#0f1419]">
+                      <option key={grade} value={grade} className="theme-text-primary theme-bg-primary">
                         {grade}
                       </option>
                     ))}
@@ -299,7 +299,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                 {/* Board Selection - Only show for Metric and FSc grades */}
                 {requiresBoardSelection(formData.grade) && (
                   <div className="flex flex-col gap-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
                       Education Board *
                     </label>
                     <select
@@ -307,11 +307,11 @@ export const CompleteProfilePage = (): JSX.Element => {
                       value={formData.board}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     >
-                      <option value="" className="text-[#9eafbf]">Select your board</option>
+                      <option value="" className="theme-text-muted">Select your board</option>
                       {boards.map((board) => (
-                        <option key={board} value={board} className="text-white bg-[#0f1419]">
+                        <option key={board} value={board} className="theme-text-primary theme-bg-primary">
                           {board}
                         </option>
                       ))}
@@ -322,7 +322,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                 {/* Area Selection - Only show for Punjab and Sindh boards */}
                 {requiresAreaSelection(formData.board) && (
                   <div className="flex flex-col gap-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                    <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
                       Area/Region *
                     </label>
                     <select
@@ -330,11 +330,11 @@ export const CompleteProfilePage = (): JSX.Element => {
                       value={formData.area}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                      className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     >
-                      <option value="" className="text-[#9eafbf]">Select your area</option>
+                      <option value="" className="theme-text-muted">Select your area</option>
                       {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
-                        <option key={area} value={area} className="text-white bg-[#0f1419]">
+                        <option key={area} value={area} className="theme-text-primary theme-bg-primary">
                           {area}
                         </option>
                       ))}
@@ -362,7 +362,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                   <Button 
                     type="button"
                     onClick={handleSkip}
-                    className="w-full h-10 md:h-12 bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium transition-colors text-sm md:text-base"
+                    className="w-full h-10 md:h-12 bg-transparent theme-border border theme-text-muted hover:theme-bg-tertiary hover:theme-text-primary rounded-lg [font-family:'Lexend',Helvetica] font-medium transition-colors text-sm md:text-base"
                   >
                     Skip for Now
                   </Button>
@@ -373,31 +373,31 @@ export const CompleteProfilePage = (): JSX.Element => {
 
           {/* Benefits Section */}
           <div className="mt-6 md:mt-8 text-center">
-            <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm mb-3 md:mb-4">
+            <p className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm mb-3 md:mb-4">
               Why complete your profile?
             </p>
             <div className="grid grid-cols-1 gap-3 md:gap-4">
-              <div className="flex items-center gap-3 p-3 bg-[#1e282d] rounded-lg border border-[#3d4f5b]">
+              <div className="flex items-center gap-3 p-3 theme-bg-secondary rounded-lg theme-border border">
                 <div className="w-6 h-6 bg-[#3f8cbf] rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-3 h-3 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-left">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-left">
                   Get personalized content based on your curriculum
                 </p>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[#1e282d] rounded-lg border border-[#3d4f5b]">
+              <div className="flex items-center gap-3 p-3 theme-bg-secondary rounded-lg theme-border border">
                 <div className="w-6 h-6 bg-[#3f8cbf] rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-3 h-3 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-left">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-left">
                   Receive targeted study recommendations
                 </p>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-[#1e282d] rounded-lg border border-[#3d4f5b]">
+              <div className="flex items-center gap-3 p-3 theme-bg-secondary rounded-lg theme-border border">
                 <div className="w-6 h-6 bg-[#3f8cbf] rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-3 h-3 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-left">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-left">
                   Track progress specific to your grade level
                 </p>
               </div>

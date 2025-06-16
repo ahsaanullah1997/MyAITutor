@@ -6,7 +6,7 @@ import { CoursesSection } from "../StitchDesign/sections/CoursesSection/index.ts
 
 export const FeaturesPage = (): JSX.Element => {
   return (
-    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+    <main className="flex flex-col w-full theme-bg-primary min-h-screen">
       <HeroSection />
       <FeaturesHeroSection />
       <FeaturesGridSection />

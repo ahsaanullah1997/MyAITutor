@@ -80,12 +80,12 @@ export const WhyChooseSection = (): JSX.Element => {
         <div className="flex flex-col items-start gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10 w-full">
           <div className="gap-4 flex flex-col items-center w-full text-center">
             <div className="max-w-[720px]">
-              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
                 Why Choose MyEduPro?
               </h2>
             </div>
             <div className="max-w-[720px]">
-              <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm md:text-base tracking-[0] leading-6">
+              <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-sm md:text-base tracking-[0] leading-6">
                 MyEduPro provides a unique learning experience tailored to the
                 needs of Pakistani students.
               </p>
@@ -95,7 +95,7 @@ export const WhyChooseSection = (): JSX.Element => {
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 w-full">
               {features.map((feature, index) => (
-                <Card key={index} className="bg-[#1e282d] border-[#3d4f5b] hover:scale-105 transition-all duration-300">
+                <Card key={index} className="theme-bg-secondary theme-border hover:scale-105 transition-all duration-300">
                   <CardContent className="p-4 md:p-6 flex flex-col gap-3">
                     <div className="w-6 h-6">
                       <div
@@ -103,10 +103,10 @@ export const WhyChooseSection = (): JSX.Element => {
                       />
                     </div>
                     <div className="flex flex-col gap-1 md:gap-2">
-                      <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-sm md:text-base tracking-[0] leading-5">
+                      <h3 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-sm md:text-base tracking-[0] leading-5">
                         {feature.title}
                       </h3>
-                      <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm tracking-[0] leading-[18px] md:leading-[21px]">
+                      <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs md:text-sm tracking-[0] leading-[18px] md:leading-[21px]">
                         {feature.description}
                       </p>
                     </div>
@@ -121,12 +121,12 @@ export const WhyChooseSection = (): JSX.Element => {
         <div className="flex flex-col items-start gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10 w-full">
           <div className="gap-4 flex flex-col items-center w-full text-center">
             <div className="max-w-[720px]">
-              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px]">
                 Our Courses
               </h2>
             </div>
             <div className="max-w-[720px]">
-              <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm md:text-base tracking-[0] leading-6">
+              <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-sm md:text-base tracking-[0] leading-6">
                 Explore our wide range of courses designed to help you excel in
                 your studies.
               </p>
@@ -144,10 +144,10 @@ export const WhyChooseSection = (): JSX.Element => {
                     }}
                   />
                   <div className="flex flex-col px-1">
-                    <h3 className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm md:text-base tracking-[0] leading-6">
+                    <h3 className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-sm md:text-base tracking-[0] leading-6">
                       {course.title}
                     </h3>
-                    <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm tracking-[0] leading-[18px] md:leading-[21px]">
+                    <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs md:text-sm tracking-[0] leading-[18px] md:leading-[21px]">
                       {course.description}
                     </p>
                   </div>
@@ -160,10 +160,10 @@ export const WhyChooseSection = (): JSX.Element => {
         {/* Call to Action Section */}
         <div className="w-full px-4 md:px-10 py-12 md:py-20 flex flex-col items-center gap-6 md:gap-8">
           <div className="flex flex-col items-center gap-2 text-center w-full">
-            <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px] max-w-[720px]">
+            <h2 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.2] md:leading-[45px] max-w-[720px]">
               Ready to Boost Your Academic Performance?
             </h2>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-white text-sm md:text-base tracking-[0] leading-6 max-w-[500px]">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-sm md:text-base tracking-[0] leading-6 max-w-[500px]">
               Join MyEduPro today and experience the future of learning.
             </p>
           </div>

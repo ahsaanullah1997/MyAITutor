@@ -67,23 +67,23 @@ export const LoginPage = (): JSX.Element => {
   };
 
   return (
-    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+    <main className="flex flex-col w-full theme-bg-primary min-h-screen">
       <HeroSection />
       
-      <section className="flex items-center justify-center px-4 md:px-6 lg:px-10 py-8 md:py-20 w-full bg-[#0f1419] min-h-[calc(100vh-80px)]">
+      <section className="flex items-center justify-center px-4 md:px-6 lg:px-10 py-8 md:py-20 w-full theme-bg-primary min-h-[calc(100vh-80px)]">
         <div className="flex flex-col max-w-[420px] w-full">
           {/* Header */}
           <div className="text-center mb-6 md:mb-8">
-            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-3 md:mb-4">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-2xl sm:text-3xl md:text-4xl tracking-[-1.00px] leading-[1.1] mb-3 md:mb-4">
               Welcome Back
             </h1>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm md:text-base tracking-[0] leading-6">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-sm md:text-base tracking-[0] leading-6">
               Sign in to continue your learning journey with MyEduPro
             </p>
           </div>
 
           {/* Login Form */}
-          <Card className="bg-[#1e282d] border-[#3d4f5b]">
+          <Card className="theme-bg-secondary theme-border">
             <CardContent className="p-4 md:p-8">
               <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
                 {/* Error Message */}
@@ -97,7 +97,7 @@ export const LoginPage = (): JSX.Element => {
 
                 {/* Email */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
                     Email Address
                   </label>
                   <input
@@ -107,14 +107,14 @@ export const LoginPage = (): JSX.Element => {
                     onChange={handleInputChange}
                     required
                     autoComplete="email"
-                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary placeholder-theme-text-muted focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Enter your email address"
                   />
                 </div>
 
                 {/* Password */}
                 <div className="flex flex-col gap-2">
-                  <label className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm">
+                  <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
                     Password
                   </label>
                   <input
@@ -124,7 +124,7 @@ export const LoginPage = (): JSX.Element => {
                     onChange={handleInputChange}
                     required
                     autoComplete="current-password"
-                    className="w-full px-3 md:px-4 py-2 md:py-3 bg-[#0f1419] border border-[#3d4f5b] rounded-lg text-white placeholder-[#9eafbf] focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
+                    className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary placeholder-theme-text-muted focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -137,9 +137,9 @@ export const LoginPage = (): JSX.Element => {
                       name="rememberMe"
                       checked={formData.rememberMe}
                       onChange={handleInputChange}
-                      className="w-3 h-3 md:w-4 md:h-4 bg-[#0f1419] border border-[#3d4f5b] rounded focus:border-[#3f8cbf] focus:outline-none"
+                      className="w-3 h-3 md:w-4 md:h-4 theme-bg-primary theme-border border rounded focus:border-[#3f8cbf] focus:outline-none"
                     />
-                    <label className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm">
+                    <label className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs md:text-sm">
                       Remember me
                     </label>
                   </div>
@@ -169,7 +169,7 @@ export const LoginPage = (): JSX.Element => {
 
                 {/* Sign Up Link */}
                 <div className="text-center">
-                  <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs md:text-sm">
+                  <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs md:text-sm">
                     Don't have an account?{" "}
                     <a href="/signup" className="text-[#3f8cbf] hover:underline font-medium">
                       Create Account
@@ -182,7 +182,7 @@ export const LoginPage = (): JSX.Element => {
 
           {/* Quick Access */}
           <div className="mt-6 md:mt-8 text-center">
-            <p className="[font-family:'Lexend',Helvetica] font-medium text-white text-xs md:text-sm mb-3 md:mb-4">
+            <p className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm mb-3 md:mb-4">
               Quick Access
             </p>
             <div className="grid grid-cols-3 gap-3 md:gap-4">
@@ -190,7 +190,7 @@ export const LoginPage = (): JSX.Element => {
                 <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-center">
                   Dashboard
                 </p>
               </div>
@@ -198,7 +198,7 @@ export const LoginPage = (): JSX.Element => {
                 <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-center">
                   AI Tutor
                 </p>
               </div>
@@ -206,7 +206,7 @@ export const LoginPage = (): JSX.Element => {
                 <div className="w-6 h-6 md:w-8 md:h-8 bg-[#3f8cbf] rounded-full flex items-center justify-center">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full" />
                 </div>
-                <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-xs text-center">
+                <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-xs text-center">
                   Progress
                 </p>
               </div>

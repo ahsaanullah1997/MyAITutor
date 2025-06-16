@@ -195,7 +195,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const isSettingsPage = currentPath.startsWith("/dashboard/settings");
 
   return (
-    <div className="min-h-screen bg-[#0f1419] flex">
+    <div className="min-h-screen theme-bg-primary flex">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && isMobile && (
         <div 
@@ -209,14 +209,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         ${isMobile ? 'fixed' : 'relative'} 
         inset-y-0 left-0 z-50 
         ${getSidebarWidth()} 
-        bg-[#1e282d] border-r border-[#3d4f5b] 
+        theme-bg-secondary theme-border border-r 
         transform transition-all duration-300 ease-in-out
         ${isMobile ? (sidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
         flex flex-col
       `}>
         
         {/* Logo and Collapse Button */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#3d4f5b] min-h-[73px]">
+        <div className="flex items-center justify-between px-4 py-4 theme-border border-b min-h-[73px]">
           {/* Logo */}
           <div 
             className={`flex items-center gap-3 cursor-pointer transition-all duration-300 ${
@@ -227,7 +227,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <div className="w-6 h-6 bg-[#3f8cbf] rounded-lg flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-white rounded-full" />
             </div>
-            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg whitespace-nowrap">
+            <h1 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-lg whitespace-nowrap">
               MyEduPro
             </h1>
           </div>
@@ -236,7 +236,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           {!isMobile && (
             <button
               onClick={handleSidebarToggle}
-              className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors flex-shrink-0"
+              className="flex items-center justify-center w-8 h-8 theme-text-secondary hover:theme-text-primary hover:theme-bg-tertiary rounded-lg transition-colors flex-shrink-0"
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               <span className="text-lg">
@@ -249,7 +249,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           {isMobile && (
             <button
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center justify-center w-8 h-8 text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+              className="flex items-center justify-center w-8 h-8 theme-text-secondary hover:theme-text-primary hover:theme-bg-tertiary rounded-lg transition-colors"
             >
               <span className="text-lg">✕</span>
             </button>
@@ -266,7 +266,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
-                      : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
+                      : 'theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary'
                   } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
                   title={!isMobile && sidebarCollapsed ? item.name : undefined}
                 >
@@ -283,7 +283,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </nav>
 
         {/* Bottom Section: Settings, User Profile, and Sign Out */}
-        <div className="border-t border-[#3d4f5b]">
+        <div className="theme-border border-t">
           {/* Settings */}
           <div className="px-4 py-2">
             <button
@@ -291,7 +291,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
                 currentPath.startsWith("/dashboard/settings")
                   ? 'bg-[#3f8cbf] text-white'
-                  : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
+                  : 'theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary'
               } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
               title={!isMobile && sidebarCollapsed ? 'Settings' : undefined}
             >
@@ -305,7 +305,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           </div>
 
           {/* User Profile */}
-          <div className={`px-4 py-4 border-t border-[#3d4f5b] transition-all duration-300`}>
+          <div className={`px-4 py-4 theme-border border-t transition-all duration-300`}>
             <div className={`flex items-center ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
               <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 {profile?.profile_picture_url ? (
@@ -323,10 +323,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <div className={`flex-1 min-w-0 transition-all duration-300 ${
                 !isMobile && sidebarCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
               }`}>
-                <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
+                <p className="theme-text-primary font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
                   {profile?.first_name} {profile?.last_name}
                 </p>
-                <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
+                <p className="theme-text-muted text-xs [font-family:'Lexend',Helvetica] truncate">
                   {profile?.grade || 'Complete your profile'}
                 </p>
               </div>
@@ -337,7 +337,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="p-4">
             <Button
               onClick={handleSignOut}
-              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center ${
+              className={`w-full bg-transparent theme-border border theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center ${
                 !isMobile && sidebarCollapsed ? 'px-2 justify-center' : 'px-4 justify-center gap-2'
               }`}
               title={!isMobile && sidebarCollapsed ? 'Sign Out' : undefined}
@@ -358,23 +358,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="bg-[#1e282d] border-b border-[#3d4f5b] px-4 lg:px-6 py-4 flex-shrink-0">
+        <header className="theme-bg-secondary theme-border border-b px-4 lg:px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center justify-center w-8 h-8 text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+              className="lg:hidden flex items-center justify-center w-8 h-8 theme-text-primary hover:theme-bg-tertiary rounded-lg transition-colors"
             >
               <div className="space-y-1">
-                <span className="block w-5 h-0.5 bg-white"></span>
-                <span className="block w-5 h-0.5 bg-white"></span>
-                <span className="block w-5 h-0.5 bg-white"></span>
+                <span className="block w-5 h-0.5 theme-text-primary"></span>
+                <span className="block w-5 h-0.5 theme-text-primary"></span>
+                <span className="block w-5 h-0.5 theme-text-primary"></span>
               </div>
             </button>
 
             {/* Page Title */}
             <div className="flex items-center gap-4">
-              <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-xl lg:text-2xl truncate">
+              <h1 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-xl lg:text-2xl truncate">
                 {getPageTitle()}
               </h1>
             </div>
@@ -384,7 +384,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               {/* Theme Toggle Button */}
               <button
                 onClick={handleThemeToggle}
-                className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+                className="w-8 h-8 flex items-center justify-center theme-text-secondary hover:theme-text-primary hover:theme-bg-tertiary rounded-lg transition-colors"
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 <span className="text-lg">
@@ -420,14 +420,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
                 {/* Dropdown Menu */}
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#1e282d] border border-[#3d4f5b] rounded-lg shadow-lg z-50">
+                  <div className="absolute right-0 top-full mt-2 w-48 theme-bg-secondary theme-border border rounded-lg shadow-lg z-50">
                     <div className="py-2">
                       {/* User Info */}
-                      <div className="px-4 py-2 border-b border-[#3d4f5b]">
-                        <p className="text-white font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
+                      <div className="px-4 py-2 theme-border border-b">
+                        <p className="theme-text-primary font-medium text-sm [font-family:'Lexend',Helvetica] truncate">
                           {profile?.first_name} {profile?.last_name}
                         </p>
-                        <p className="text-[#9eafbf] text-xs [font-family:'Lexend',Helvetica] truncate">
+                        <p className="theme-text-muted text-xs [font-family:'Lexend',Helvetica] truncate">
                           {user?.email}
                         </p>
                       </div>
@@ -439,7 +439,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                             setProfileDropdownOpen(false);
                             handleNavigationClick('/dashboard/settings');
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
+                          className="w-full flex items-center gap-3 px-4 py-2 theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
                         >
                           <span className="text-base">⚙️</span>
                           Settings
@@ -450,7 +450,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                             setProfileDropdownOpen(false);
                             handleSignOut();
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
+                          className="w-full flex items-center gap-3 px-4 py-2 theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
                         >
                           <span className="text-base">🚪</span>
                           Sign Out
@@ -465,7 +465,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
           {/* Settings Menu - Only show on settings pages */}
           {isSettingsPage && (
-            <div className="mt-4 border-t border-[#3d4f5b] pt-4">
+            <div className="mt-4 theme-border border-t pt-4">
               <div className="flex items-center gap-2 overflow-x-auto pb-2">
                 {settingsMenuItems.map((item) => (
                   <button
@@ -474,7 +474,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
                       item.active
                         ? 'bg-[#3f8cbf] text-white'
-                        : 'bg-[#0f1419] border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
+                        : 'theme-bg-primary theme-border border theme-text-secondary hover:theme-bg-tertiary hover:theme-text-primary'
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>

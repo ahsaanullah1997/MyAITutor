@@ -56,14 +56,14 @@ export const HeroSection = (): JSX.Element => {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 md:px-10 py-3 bg-[#0f1419] border-b border-[#1e282d] w-full relative">
+    <header className="flex items-center justify-between px-4 md:px-10 py-3 theme-bg-primary border-b theme-border w-full relative">
       {/* Logo section */}
       <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.href = user ? '/dashboard' : '/'}>
         <div className="flex items-start">
           <div className="w-4 h-4 bg-[url(/vector---0.svg)] bg-[100%_100%]" />
         </div>
         <div className="flex items-start">
-          <h1 className="font-bold text-white text-lg leading-[23px] font-['Lexend',Helvetica]">
+          <h1 className="font-bold theme-text-primary text-lg leading-[23px] font-['Lexend',Helvetica]">
             MyEduPro
           </h1>
         </div>
@@ -76,7 +76,7 @@ export const HeroSection = (): JSX.Element => {
             {navItems.map((item, index) => (
               <NavigationMenuItem key={index}>
                 <NavigationMenuLink
-                  className="font-medium text-white text-sm leading-[21px] font-['Lexend',Helvetica] hover:text-[#3f8cbf] transition-colors"
+                  className="font-medium theme-text-primary text-sm leading-[21px] font-['Lexend',Helvetica] hover:text-[#3f8cbf] transition-colors"
                   href={item.href}
                 >
                   {item.label}
@@ -91,7 +91,7 @@ export const HeroSection = (): JSX.Element => {
           {/* Theme Toggle Button */}
           <button
             onClick={handleThemeToggle}
-            className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center theme-text-secondary hover:theme-text-primary hover:theme-bg-secondary rounded-lg transition-colors"
             title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             <span className="text-lg">
@@ -140,7 +140,7 @@ export const HeroSection = (): JSX.Element => {
         {/* Mobile Theme Toggle Button */}
         <button
           onClick={handleThemeToggle}
-          className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+          className="w-8 h-8 flex items-center justify-center theme-text-secondary hover:theme-text-primary hover:theme-bg-secondary rounded-lg transition-colors"
           title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           <span className="text-lg">
@@ -173,22 +173,22 @@ export const HeroSection = (): JSX.Element => {
           className="flex flex-col justify-center items-center w-8 h-8 space-y-1"
           aria-label="Toggle mobile menu"
         >
-          <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-          <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`}></span>
-          <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+          <span className={`block w-5 h-0.5 theme-text-primary transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+          <span className={`block w-5 h-0.5 theme-text-primary transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`}></span>
+          <span className={`block w-5 h-0.5 theme-text-primary transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
         </button>
       </div>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-[#0f1419] border-b border-[#1e282d] z-50">
+        <div className="lg:hidden absolute top-full left-0 right-0 theme-bg-primary theme-border border-b z-50">
           <div className="flex flex-col p-4 space-y-4">
             {/* Mobile Navigation */}
             {navItems.map((item, index) => (
               <a
                 key={index}
                 href={item.href}
-                className="font-medium text-white text-base leading-6 font-['Lexend',Helvetica] hover:text-[#3f8cbf] transition-colors py-2"
+                className="font-medium theme-text-primary text-base leading-6 font-['Lexend',Helvetica] hover:text-[#3f8cbf] transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
@@ -196,7 +196,7 @@ export const HeroSection = (): JSX.Element => {
             ))}
             
             {/* Mobile Auth Section */}
-            <div className="pt-4 border-t border-[#1e282d]">
+            <div className="pt-4 border-t theme-border">
               {loading ? (
                 <div className="flex justify-center">
                   <div className="w-4 h-4 border-2 border-[#3f8cbf] border-t-transparent rounded-full animate-spin"></div>

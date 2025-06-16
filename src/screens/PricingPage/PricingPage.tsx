@@ -93,17 +93,17 @@ export const PricingPage = (): JSX.Element => {
   };
 
   return (
-    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+    <main className="flex flex-col w-full theme-bg-primary min-h-screen">
       <HeroSection />
       
-      <section className="flex items-start justify-center px-4 md:px-10 lg:px-40 py-20 w-full bg-[#0f1419]">
+      <section className="flex items-start justify-center px-4 md:px-10 lg:px-40 py-20 w-full theme-bg-primary">
         <div className="flex flex-col max-w-[1200px] w-full">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-4xl md:text-5xl lg:text-6xl tracking-[-2.00px] leading-[1.1] mb-6">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-4xl md:text-5xl lg:text-6xl tracking-[-2.00px] leading-[1.1] mb-6">
               Choose Your Learning Plan
             </h1>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-lg tracking-[0] leading-7 max-w-[600px] mx-auto">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-lg tracking-[0] leading-7 max-w-[600px] mx-auto">
               Select the perfect plan to accelerate your academic success with AI-powered personalized learning.
             </p>
           </div>
@@ -116,9 +116,9 @@ export const PricingPage = (): JSX.Element => {
                 className={`relative ${
                   plan.highlighted 
                     ? 'bg-gradient-to-br from-[#3f8cbf] to-[#2d6a94] border-[#3f8cbf] scale-105' 
-                    : 'bg-[#1e282d] border-[#3d4f5b]'
+                    : 'theme-bg-secondary theme-border'
                 } hover:scale-110 transition-all duration-300 hover:shadow-lg ${
-                  plan.highlighted ? 'hover:shadow-[#3f8cbf]/20' : 'hover:shadow-white/10'
+                  plan.highlighted ? 'hover:shadow-[#3f8cbf]/20' : 'hover:shadow-black/10 dark:hover:shadow-white/10'
                 }`}
               >
                 {plan.popular && (
@@ -132,7 +132,7 @@ export const PricingPage = (): JSX.Element => {
                 <CardContent className="p-8 flex flex-col gap-6 h-full">
                   <div className="flex flex-col gap-4">
                     <h3 className={`[font-family:'Lexend',Helvetica] font-bold text-2xl tracking-[0] leading-6 ${
-                      plan.highlighted ? 'text-white' : 'text-white'
+                      plan.highlighted ? 'text-white' : 'theme-text-primary'
                     }`}>
                       {plan.name}
                     </h3>
@@ -146,14 +146,14 @@ export const PricingPage = (): JSX.Element => {
                         {plan.price}
                       </span>
                       <span className={`[font-family:'Lexend',Helvetica] font-normal text-sm ${
-                        plan.highlighted ? 'text-white/80' : 'text-[#9eafbf]'
+                        plan.highlighted ? 'text-white/80' : 'theme-text-muted'
                       }`}>
                         {plan.period}
                       </span>
                     </div>
                     
                     <p className={`[font-family:'Lexend',Helvetica] font-normal text-sm leading-6 ${
-                      plan.highlighted ? 'text-white/90' : 'text-[#9eafbf]'
+                      plan.highlighted ? 'text-white/90' : 'theme-text-muted'
                     }`}>
                       {plan.description}
                     </p>
@@ -170,7 +170,7 @@ export const PricingPage = (): JSX.Element => {
                           }`} />
                         </div>
                         <p className={`[font-family:'Lexend',Helvetica] font-normal text-sm ${
-                          plan.highlighted ? 'text-white/90' : 'text-[#9eafbf]'
+                          plan.highlighted ? 'text-white/90' : 'theme-text-muted'
                         }`}>
                           {feature}
                         </p>
@@ -196,26 +196,26 @@ export const PricingPage = (): JSX.Element => {
           {/* Features Section */}
           <div className="mb-20">
             <div className="text-center mb-12">
-              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-3xl md:text-4xl tracking-[-1.00px] leading-[45px] mb-4">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-3xl md:text-4xl tracking-[-1.00px] leading-[45px] mb-4">
                 Why Choose EduGenius?
               </h2>
-              <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
+              <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
                 Experience the future of education with our comprehensive AI-powered learning platform.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, index) => (
-                <Card key={index} className="bg-[#1e282d] border-[#3d4f5b] hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-white/10">
+                <Card key={index} className="theme-bg-secondary theme-border hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-white/10">
                   <CardContent className="p-6 flex flex-col gap-4 text-center">
                     <div className="w-8 h-8 mx-auto">
                       <div className={`w-full h-full bg-[url(${feature.icon})] bg-[100%_100%]`} />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg tracking-[0] leading-6">
+                      <h3 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-lg tracking-[0] leading-6">
                         {feature.title}
                       </h3>
-                      <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm tracking-[0] leading-5">
+                      <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-sm tracking-[0] leading-5">
                         {feature.description}
                       </p>
                     </div>
@@ -228,10 +228,10 @@ export const PricingPage = (): JSX.Element => {
           {/* FAQ Section */}
           <div className="mb-20">
             <div className="text-center mb-12">
-              <h2 className="[font-family:'Lexend',Helvetica] font-black text-white text-3xl md:text-4xl tracking-[-1.00px] leading-[45px] mb-4">
+              <h2 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-3xl md:text-4xl tracking-[-1.00px] leading-[45px] mb-4">
                 Frequently Asked Questions
               </h2>
-              <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
+              <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-base tracking-[0] leading-6 max-w-[600px] mx-auto">
                 Get answers to common questions about our pricing and features.
               </p>
             </div>
@@ -263,12 +263,12 @@ export const PricingPage = (): JSX.Element => {
                   answer: "Our Custom plan is designed for educational institutes and includes bulk accounts, custom integrations, dedicated support, and white-label options. Contact us for a personalized quote."
                 }
               ].map((faq, index) => (
-                <Card key={index} className="bg-[#1e282d] border-[#3d4f5b]">
+                <Card key={index} className="theme-bg-secondary theme-border">
                   <CardContent className="p-6">
-                    <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-3">
+                    <h3 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-lg mb-3">
                       {faq.question}
                     </h3>
-                    <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-sm leading-6">
+                    <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-muted text-sm leading-6">
                       {faq.answer}
                     </p>
                   </CardContent>
