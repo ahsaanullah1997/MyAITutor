@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
 import {
   NavigationMenu,
@@ -11,6 +11,7 @@ import { useAuth } from "../../../../contexts/AuthContext";
 export const HeroSection = (): JSX.Element => {
   const { user, signOut, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // Navigation items data
   const navItems = [
@@ -20,6 +21,18 @@ export const HeroSection = (): JSX.Element => {
     { label: "About Us", href: "/about" },
     { label: "Contact", href: "/contact" },
   ];
+
+  // Load theme preference on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      // Default to dark mode
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -32,6 +45,14 @@ export const HeroSection = (): JSX.Element => {
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    const newTheme = isDarkMode ? 'light' : 'dark';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   return (
@@ -65,8 +86,19 @@ export const HeroSection = (): JSX.Element => {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Desktop Auth Buttons */}
+        {/* Desktop Auth Buttons and Theme Toggle */}
         <div className="flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={handleThemeToggle}
+            className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            <span className="text-lg">
+              {isDarkMode ? '☀️' : '🌙'}
+            </span>
+          </button>
+
           {loading ? (
             <div className="w-4 h-4 border-2 border-[#3f8cbf] border-t-transparent rounded-full animate-spin"></div>
           ) : user ? (
@@ -105,6 +137,17 @@ export const HeroSection = (): JSX.Element => {
 
       {/* Mobile Menu Button */}
       <div className="lg:hidden flex items-center gap-3">
+        {/* Mobile Theme Toggle Button */}
+        <button
+          onClick={handleThemeToggle}
+          className="w-8 h-8 flex items-center justify-center text-[#9eafbf] hover:text-white hover:bg-[#2a3540] rounded-lg transition-colors"
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          <span className="text-lg">
+            {isDarkMode ? '☀️' : '🌙'}
+          </span>
+        </button>
+
         {/* Mobile Auth Buttons - Show Dashboard if logged in */}
         {!loading && user && (
           <Button 
