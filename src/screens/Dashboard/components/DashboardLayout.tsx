@@ -444,18 +444,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                           <span className="text-base">⚙️</span>
                           Settings
                         </button>
-
-                        {/* Theme Toggle Button */}
-                        <button
-                          onClick={() => {
-                            handleThemeToggle();
-                            setProfileDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-[#9eafbf] hover:bg-[#2a3540] hover:text-white transition-colors [font-family:'Lexend',Helvetica] text-sm text-left"
-                        >
-                          <span className="text-base">{isDarkMode ? '☀️' : '🌙'}</span>
-                          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                        </button>
                         
                         <button
                           onClick={() => {
