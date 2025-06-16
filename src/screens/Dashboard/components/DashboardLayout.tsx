@@ -178,11 +178,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <li key={item.name}>
                 <a
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
                     item.active
                       ? 'bg-[#3f8cbf] text-white'
                       : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
-                  } ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}
+                  } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
                 >
                   <span className="text-lg flex-shrink-0">{item.icon}</span>
                   <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -202,11 +202,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="px-4 py-2">
             <a
               href="/dashboard/settings"
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
                 currentPath === "/dashboard/settings"
                   ? 'bg-[#3f8cbf] text-white'
                   : 'text-[#9eafbf] hover:bg-[#2a3540] hover:text-white'
-              } ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}
+              } ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}
             >
               <span className="text-lg flex-shrink-0">⚙️</span>
               <span className={`[font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 ${
@@ -219,7 +219,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
           {/* User Profile */}
           <div className={`px-4 py-4 border-t border-[#3d4f5b] transition-all duration-300`}>
-            <div className={`flex items-center gap-3 ${!isMobile && sidebarCollapsed ? 'justify-center' : ''}`}>
+            <div className={`flex items-center ${!isMobile && sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
               <div className="w-10 h-10 bg-[#3f8cbf] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 {profile?.profile_picture_url ? (
                   <img 
@@ -250,8 +250,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <div className="p-4">
             <Button
               onClick={handleSignOut}
-              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
-                !isMobile && sidebarCollapsed ? 'px-2 justify-center' : 'px-4 justify-center'
+              className={`w-full bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white rounded-lg [font-family:'Lexend',Helvetica] font-medium text-sm transition-all duration-300 flex items-center ${
+                !isMobile && sidebarCollapsed ? 'px-2 justify-center' : 'px-4 justify-center gap-2'
               }`}
             >
               <span className={!isMobile && sidebarCollapsed ? 'text-lg' : 'text-sm'}>
