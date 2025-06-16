@@ -79,21 +79,13 @@ export const PlanBillingPage = (): JSX.Element => {
       <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              onClick={() => window.location.href = '/dashboard/settings'}
-              className="bg-transparent border border-[#3d4f5b] text-[#9eafbf] hover:bg-[#2a3540] hover:text-white [font-family:'Lexend',Helvetica] font-medium text-sm px-3 py-2"
-            >
-              ← Back to Settings
-            </Button>
-            <div>
-              <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-2xl md:text-3xl">
-                Plan & Billing 💳
-              </h1>
-              <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-base">
-                Manage your subscription and billing information.
-              </p>
-            </div>
+          <div className="mb-6">
+            <h1 className="[font-family:'Lexend',Helvetica] font-bold text-white text-2xl md:text-3xl">
+              Plan & Billing 💳
+            </h1>
+            <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-base">
+              Manage your subscription and billing information.
+            </p>
           </div>
 
           {/* Current Subscription */}
