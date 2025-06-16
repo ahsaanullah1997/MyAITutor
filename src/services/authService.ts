@@ -190,8 +190,8 @@ export class AuthService {
           .from('user_profiles')
           .select('*')
           .eq('id', userId)
+          .limit(1)
           .abortSignal(controller.signal)
-          .single()
 
         clearTimeout(timeoutId)
 
@@ -202,14 +202,6 @@ export class AuthService {
             details: error.details,
             hint: error.hint
           })
-
-          // Handle "no rows found" cases - this is expected when user profile doesn't exist yet
-          if (error.code === 'PGRST116' || 
-              error.message.includes('JSON object requested, multiple (or no) rows returned') ||
-              error.message.includes('The result contains 0 rows')) {
-            console.log('No profile found for user, returning null')
-            return null
-          }
           
           // Check for specific error types
           if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Connection timeout')) {
@@ -232,8 +224,14 @@ export class AuthService {
           throw new Error(`Database error: ${error.message}`)
         }
         
+        // Check if data array is empty (no profile found)
+        if (!data || data.length === 0) {
+          console.log('No profile found for user, returning null')
+          return null
+        }
+        
         console.log('Profile fetched successfully')
-        return data
+        return data[0] // Return the first (and only) result
       } catch (fetchError) {
         clearTimeout(timeoutId)
         
@@ -251,20 +249,6 @@ export class AuthService {
           }
         }
         
-        // Check if this is a PGRST116 error (no rows found) in the fetchError
-        if (fetchError && typeof fetchError === 'object' && 'code' in fetchError && fetchError.code === 'PGRST116') {
-          console.log('No profile found for user (from fetchError), returning null')
-          return null
-        }
-        
-        // Also check if the error message indicates no rows found
-        if (fetchError instanceof Error && 
-            (fetchError.message.includes('JSON object requested, multiple (or no) rows returned') ||
-             fetchError.message.includes('The result contains 0 rows'))) {
-          console.log('No profile found for user (from error message), returning null')
-          return null
-        }
-        
         throw fetchError
       }
     } catch (error) {
@@ -277,15 +261,6 @@ export class AuthService {
       
       // Handle configuration errors gracefully
       if (error instanceof Error && error.message.includes('not configured')) {
-        return null
-      }
-      
-      // Handle "no rows found" errors at the top level as well
-      if (error instanceof Error && 
-          (error.message.includes('JSON object requested, multiple (or no) rows returned') ||
-           error.message.includes('The result contains 0 rows') ||
-           (typeof error === 'object' && 'code' in error && error.code === 'PGRST116'))) {
-        console.log('No profile found for user (top level catch), returning null')
         return null
       }
       
