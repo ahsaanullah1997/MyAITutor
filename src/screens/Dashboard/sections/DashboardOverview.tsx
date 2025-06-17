@@ -2,6 +2,8 @@ import React from "react";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../contexts/AuthContext";
+import { AnalyticsCard } from "../components/AnalyticsCard";
+import { StudyStreakCard } from "../components/StudyStreakCard";
 
 export const DashboardOverview = (): JSX.Element => {
   const { profile, progressStats, subjectProgress, recordStudySession } = useAuth();
@@ -159,6 +161,13 @@ export const DashboardOverview = (): JSX.Element => {
         ))}
       </div>
 
+      {/* Analytics and Streak Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <AnalyticsCard type="weekly" />
+        <StudyStreakCard />
+        <AnalyticsCard type="insights" />
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Subject Progress */}
@@ -239,35 +248,8 @@ export const DashboardOverview = (): JSX.Element => {
             </CardContent>
           </Card>
 
-          {/* Upcoming Tasks */}
-          <Card className="bg-[#1e282d] border-[#3d4f5b]">
-            <CardContent className="p-6">
-              <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-4">
-                Upcoming Tasks
-              </h3>
-              <div className="space-y-3">
-                {upcomingTasks.map((task, index) => (
-                  <div key={index} className="p-3 bg-[#0f1419] rounded-lg">
-                    <div className="flex items-start justify-between mb-1">
-                      <h4 className="[font-family:'Lexend',Helvetica] font-medium text-white text-sm">
-                        {task.title}
-                      </h4>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        task.priority === 'high' ? 'bg-red-500/20 text-red-400' :
-                        task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-green-500/20 text-green-400'
-                      }`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                    <p className="[font-family:'Lexend',Helvetica] text-[#9eafbf] text-xs">
-                      {task.subject} • {task.dueDate}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Monthly Analytics */}
+          <AnalyticsCard type="monthly" />
         </div>
       </div>
 
@@ -311,18 +293,18 @@ export const DashboardOverview = (): JSX.Element => {
       <Card className="bg-gradient-to-r from-[#10b981] to-[#059669] border-[#10b981]">
         <CardContent className="p-6 text-center">
           <h3 className="[font-family:'Lexend',Helvetica] font-bold text-white text-lg mb-2">
-            🎯 Progress Tracking Active!
+            🎯 Enhanced Analytics Active!
           </h3>
           <p className="[font-family:'Lexend',Helvetica] text-white/90 mb-4">
-            Your study sessions, test scores, and learning progress are now being tracked automatically. 
-            Try the "Study" buttons above to see your stats update in real-time!
+            Your learning patterns, study streaks, and performance insights are now being tracked with advanced analytics. 
+            Get personalized recommendations and detailed progress reports!
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               className="bg-white text-[#10b981] hover:bg-gray-100 [font-family:'Lexend',Helvetica] font-bold"
               onClick={() => window.location.href = '/dashboard/progress'}
             >
-              View Detailed Progress
+              View Detailed Analytics
             </Button>
             <Button 
               className="bg-transparent border border-white text-white hover:bg-white/10 [font-family:'Lexend',Helvetica] font-bold"
