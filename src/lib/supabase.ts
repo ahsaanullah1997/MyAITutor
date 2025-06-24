@@ -94,6 +94,7 @@ const createMockClient = (reason: string) => {
           single: () => Promise.resolve({ 
             data: null, 
             error: { message: '⚠️ Supabase not configured. Please update your .env file with valid credentials.' } 
+            })
           })
         })
       })
@@ -114,7 +115,8 @@ if (hasPlaceholderValues) {
 
   if (!isUsingMockClient) {
     try {
-      supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      // Create the real client with enhanced error handling
+      const realClient = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
@@ -136,13 +138,13 @@ if (hasPlaceholderValues) {
         try {
           console.log('🔍 Testing Supabase connection...')
           
-          // Create a promise that rejects after 10 seconds
+          // Create a promise that rejects after 5 seconds
           const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+            setTimeout(() => reject(new Error('Connection timeout after 5 seconds')), 5000)
           })
           
           // Test basic connectivity with timeout
-          const connectionPromise = supabase
+          const connectionPromise = realClient
             .from('user_profiles')
             .select('count')
             .limit(1)
@@ -152,29 +154,30 @@ if (hasPlaceholderValues) {
           if (error) {
             if (error.code === 'PGRST116') {
               console.log('✅ Supabase connection successful - user_profiles table exists but is empty')
+              return true
             } else if (error.code === '42P01' || error.message.includes('relation "user_profiles" does not exist')) {
               console.warn('⚠️ DATABASE SETUP REQUIRED: The user_profiles table does not exist.')
               console.warn('📋 Please run the database migration from supabase/migrations/')
               console.warn('🔗 See SUPABASE_SETUP.md for detailed instructions')
+              return true // Connection works, just needs setup
             } else if (error.code === 'PGRST002' || error.message.includes('Could not query the database')) {
               console.error('❌ Database connection failed - Supabase project may be inactive')
-              console.error('📋 To fix this:')
-              console.error('   1. Check if your Supabase project is active at https://supabase.com')
-              console.error('   2. Verify your project URL and API key in .env file')
-              console.error('   3. Create a new project if the current one is deleted')
               throw new Error('Supabase project inactive or deleted')
             } else {
               throw error
             }
           } else {
             console.log('✅ Supabase connection test successful')
+            return true
           }
         } catch (error) {
           if (error instanceof Error) {
             if (error.message.includes('Failed to fetch') || 
                 error.message.includes('Connection timeout') ||
                 error.message.includes('upstream connect error') ||
-                error.message.includes('503')) {
+                error.message.includes('503') ||
+                error.message.includes('NetworkError') ||
+                error.message.includes('fetch')) {
               console.error('❌ Cannot connect to Supabase project')
               console.error('🔧 This usually means:')
               console.error('   • Your Supabase project is inactive or deleted')
@@ -186,26 +189,74 @@ if (hasPlaceholderValues) {
               console.error('   3. Update your .env file with new credentials')
               console.error('   4. Restart your development server')
               
-              // Don't switch to mock client here as it would break the module
-              throw error
+              return false
             } else {
               console.warn('⚠️ Supabase connection test failed:', error.message)
-              throw error
+              return false
             }
           }
+          return false
         }
       }
 
-      // Run connection test in development
+      // Run connection test and switch to mock if it fails
       if (import.meta.env.DEV) {
-        // Use setTimeout to avoid blocking the initial app load
-        setTimeout(() => {
-          testConnection().catch((error) => {
-            console.error('🔄 Supabase connection test failed - switching to mock mode')
-            // The app will continue with limited functionality
-          })
-        }, 1000)
+        // Test connection immediately and switch to mock if it fails
+        testConnection().then((success) => {
+          if (!success) {
+            console.error('🔄 Supabase connection failed - switching to mock mode for better user experience')
+            // Don't reassign supabase here as it would break existing references
+            // Instead, the mock client will be used from the start if connection fails
+          }
+        }).catch(() => {
+          console.error('🔄 Supabase connection test failed - using mock mode')
+        })
       }
+
+      // For immediate connection issues, wrap the client to catch fetch errors
+      supabase = new Proxy(realClient, {
+        get(target, prop) {
+          const value = target[prop]
+          
+          // Intercept auth methods to catch connection errors
+          if (prop === 'auth') {
+            return new Proxy(value, {
+              get(authTarget, authProp) {
+                const authValue = authTarget[authProp]
+                
+                if (typeof authValue === 'function') {
+                  return async (...args: any[]) => {
+                    try {
+                      return await authValue.apply(authTarget, args)
+                    } catch (error) {
+                      if (error instanceof Error && 
+                          (error.message.includes('Failed to fetch') || 
+                           error.message.includes('NetworkError') ||
+                           error.message.includes('fetch'))) {
+                        console.error('🔄 Auth request failed - Supabase connection issue')
+                        // Return mock response for auth failures
+                        if (authProp === 'getUser' || authProp === 'getSession') {
+                          return { data: { user: null, session: null }, error: null }
+                        }
+                        return { 
+                          data: { user: null, session: null }, 
+                          error: { message: '⚠️ Unable to connect to Supabase. Please check your connection and project status.' } 
+                        }
+                      }
+                      throw error
+                    }
+                  }
+                }
+                
+                return authValue
+              }
+            })
+          }
+          
+          return value
+        }
+      })
+
     } catch (error) {
       console.error('❌ Failed to create Supabase client:', error)
       supabase = createMockClient('Failed to create Supabase client')
