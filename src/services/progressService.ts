@@ -1,9 +1,58 @@
-import { supabase } from '../lib/supabase'
+import { supabase, isUsingMockClient } from '../lib/supabase'
 import type { UserProgressStats, SubjectProgress, StudySession } from '../lib/supabase'
 
 export class ProgressService {
+  // Check if we can safely make database calls
+  private static canMakeDbCalls(): boolean {
+    if (isUsingMockClient) {
+      console.warn('ProgressService: Using mock client, database operations will be simulated')
+      return false
+    }
+    return true
+  }
+
+  // Create mock progress data for when database is unavailable
+  private static createMockProgressStats(userId: string): UserProgressStats {
+    return {
+      id: 'mock-id',
+      user_id: userId,
+      study_streak_days: 0,
+      total_study_time_minutes: 0,
+      completed_lessons: 0,
+      total_tests_taken: 0,
+      average_test_score: 0,
+      ai_sessions_count: 0,
+      weekly_study_time: 0,
+      monthly_study_time: 0,
+      last_study_date: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  }
+
+  // Create mock subject progress data
+  private static createMockSubjectProgress(userId: string): SubjectProgress[] {
+    const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Urdu']
+    return subjects.map((subject, index) => ({
+      id: `mock-${index}`,
+      user_id: userId,
+      subject_name: subject,
+      progress_percentage: Math.floor(Math.random() * 50), // Random progress 0-50%
+      completed_topics: Math.floor(Math.random() * 10),
+      total_topics: 20,
+      last_accessed: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }))
+  }
+
   // Initialize user progress stats with zero values
   static async initializeUserProgress(userId: string): Promise<UserProgressStats> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Returning mock progress stats (database unavailable)')
+      return this.createMockProgressStats(userId)
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_progress_stats')
@@ -22,16 +71,36 @@ export class ProgressService {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, returning mock data')
+          return this.createMockProgressStats(userId)
+        }
+        throw error
+      }
       return data
     } catch (error) {
       console.error('Error initializing user progress:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Returning mock progress stats due to connection error')
+        return this.createMockProgressStats(userId)
+      }
       throw error
     }
   }
 
   // Get user progress stats
   static async getUserProgress(userId: string): Promise<UserProgressStats | null> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Returning mock progress stats (database unavailable)')
+      return this.createMockProgressStats(userId)
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_progress_stats')
@@ -39,7 +108,15 @@ export class ProgressService {
         .eq('user_id', userId)
         .maybeSingle()
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, returning mock data')
+          return this.createMockProgressStats(userId)
+        }
+        throw error
+      }
 
       if (!data) {
         // No progress found, initialize with zeros
@@ -49,12 +126,24 @@ export class ProgressService {
       return data
     } catch (error) {
       console.error('Error fetching user progress:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Returning mock progress stats due to connection error')
+        return this.createMockProgressStats(userId)
+      }
       return null
     }
   }
 
   // Initialize default subjects for a user
   static async initializeSubjects(userId: string): Promise<void> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Skipping subject initialization (database unavailable)')
+      return
+    }
+
     const defaultSubjects = [
       { name: 'Mathematics', total_topics: 20 },
       { name: 'Physics', total_topics: 20 },
@@ -78,15 +167,35 @@ export class ProgressService {
         .from('subject_progress')
         .upsert(subjectData, { onConflict: 'user_id,subject_name' })
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, skipping subject initialization')
+          return
+        }
+        throw error
+      }
     } catch (error) {
       console.error('Error initializing subjects:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Skipping subject initialization due to connection error')
+        return
+      }
       throw error
     }
   }
 
   // Get subject progress for a user
   static async getSubjectProgress(userId: string): Promise<SubjectProgress[]> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Returning mock subject progress (database unavailable)')
+      return this.createMockSubjectProgress(userId)
+    }
+
     try {
       const { data, error } = await supabase
         .from('subject_progress')
@@ -94,7 +203,15 @@ export class ProgressService {
         .eq('user_id', userId)
         .order('subject_name')
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, returning mock data')
+          return this.createMockSubjectProgress(userId)
+        }
+        throw error
+      }
       
       if (!data || data.length === 0) {
         // Initialize subjects if none exist
@@ -105,6 +222,13 @@ export class ProgressService {
       return data
     } catch (error) {
       console.error('Error fetching subject progress:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Returning mock subject progress due to connection error')
+        return this.createMockSubjectProgress(userId)
+      }
       return []
     }
   }
@@ -117,6 +241,12 @@ export class ProgressService {
     durationMinutes: number,
     score?: number
   ): Promise<void> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Simulating study session recording (database unavailable)')
+      console.log(`Mock session: ${sessionType} - ${subject} - ${durationMinutes}min${score ? ` - ${score}%` : ''}`)
+      return
+    }
+
     try {
       // Record the session
       const { error: sessionError } = await supabase
@@ -130,7 +260,15 @@ export class ProgressService {
           session_date: new Date().toISOString().split('T')[0]
         })
 
-      if (sessionError) throw sessionError
+      if (sessionError) {
+        if (sessionError.message.includes('Failed to fetch') || 
+            sessionError.message.includes('NetworkError') ||
+            sessionError.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, simulating session recording')
+          return
+        }
+        throw sessionError
+      }
 
       // Update progress stats
       await this.updateProgressStats(userId, sessionType, durationMinutes, score)
@@ -141,6 +279,13 @@ export class ProgressService {
       }
     } catch (error) {
       console.error('Error recording study session:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Simulating study session recording due to connection error')
+        return
+      }
       throw error
     }
   }
@@ -152,6 +297,11 @@ export class ProgressService {
     durationMinutes: number,
     score?: number
   ): Promise<void> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Skipping progress stats update (database unavailable)')
+      return
+    }
+
     try {
       // Get current stats
       const currentStats = await this.getUserProgress(userId)
@@ -212,15 +362,35 @@ export class ProgressService {
         .update(updates)
         .eq('user_id', userId)
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, skipping progress stats update')
+          return
+        }
+        throw error
+      }
     } catch (error) {
       console.error('Error updating progress stats:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Skipping progress stats update due to connection error')
+        return
+      }
       throw error
     }
   }
 
   // Update subject progress
   private static async updateSubjectProgress(userId: string, subject: string): Promise<void> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Skipping subject progress update (database unavailable)')
+      return
+    }
+
     try {
       const { data: currentProgress, error: fetchError } = await supabase
         .from('subject_progress')
@@ -229,7 +399,15 @@ export class ProgressService {
         .eq('subject_name', subject)
         .single()
 
-      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        if (fetchError.message.includes('Failed to fetch') || 
+            fetchError.message.includes('NetworkError') ||
+            fetchError.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, skipping subject progress update')
+          return
+        }
+        throw fetchError
+      }
 
       if (currentProgress) {
         const newCompletedTopics = currentProgress.completed_topics + 1
@@ -248,16 +426,36 @@ export class ProgressService {
           .eq('user_id', userId)
           .eq('subject_name', subject)
 
-        if (updateError) throw updateError
+        if (updateError) {
+          if (updateError.message.includes('Failed to fetch') || 
+              updateError.message.includes('NetworkError') ||
+              updateError.message.includes('not configured')) {
+            console.warn('ProgressService: Database connection failed, skipping subject progress update')
+            return
+          }
+          throw updateError
+        }
       }
     } catch (error) {
       console.error('Error updating subject progress:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Skipping subject progress update due to connection error')
+        return
+      }
       throw error
     }
   }
 
   // Get recent study sessions
   static async getRecentSessions(userId: string, limit: number = 10): Promise<StudySession[]> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Returning empty sessions list (database unavailable)')
+      return []
+    }
+
     try {
       const { data, error } = await supabase
         .from('study_sessions')
@@ -266,16 +464,36 @@ export class ProgressService {
         .order('created_at', { ascending: false })
         .limit(limit)
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, returning empty sessions')
+          return []
+        }
+        throw error
+      }
       return data || []
     } catch (error) {
       console.error('Error fetching recent sessions:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Returning empty sessions due to connection error')
+        return []
+      }
       return []
     }
   }
 
   // Reset weekly/monthly stats (would be called by a scheduled job)
   static async resetPeriodicStats(userId: string, type: 'weekly' | 'monthly'): Promise<void> {
+    if (!this.canMakeDbCalls()) {
+      console.log('ProgressService: Skipping periodic stats reset (database unavailable)')
+      return
+    }
+
     try {
       const updates: any = {}
       if (type === 'weekly') {
@@ -289,9 +507,24 @@ export class ProgressService {
         .update(updates)
         .eq('user_id', userId)
 
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError') ||
+            error.message.includes('not configured')) {
+          console.warn('ProgressService: Database connection failed, skipping periodic stats reset')
+          return
+        }
+        throw error
+      }
     } catch (error) {
       console.error('Error resetting periodic stats:', error)
+      if (error instanceof Error && 
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('NetworkError') ||
+           error.message.includes('not configured'))) {
+        console.warn('ProgressService: Skipping periodic stats reset due to connection error')
+        return
+      }
       throw error
     }
   }
