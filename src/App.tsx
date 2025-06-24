@@ -1,59 +1,88 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { AuthRedirect } from "./components/AuthRedirect";
-import { StitchDesign } from "./screens/StitchDesign";
-import { FeaturesPage } from "./screens/FeaturesPage/index.ts";
-import { AboutUsPage } from "./screens/AboutUsPage/index.ts";
-import { ContactPage } from "./screens/ContactPage/index.ts";
-import { PricingPage } from "./screens/PricingPage/index.ts";
-import { PrivacyPolicyPage } from "./screens/PrivacyPolicyPage/index.ts";
-import { TermsOfServicePage } from "./screens/TermsOfServicePage/index.ts";
-import { HelpCenterPage } from "./screens/HelpCenterPage/index.ts";
-import { SignUpPage, LoginPage, CompleteProfilePage } from "./screens/AuthPage/index.ts";
-import { 
-  Dashboard, 
-  AITutorPage, 
-  ProgressPage, 
-  StudyMaterialsPage, 
-  TestsPage, 
-  SettingsPage,
-  ProfileInformationPage,
-  PlanBillingPage,
-  NotificationsPage,
-  AccountActionsPage
-} from "./screens/Dashboard/index.ts";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthRedirect } from './components/AuthRedirect';
+import { SupabaseHealthCheck } from './components/SupabaseHealthCheck';
 
-export const App = (): JSX.Element => {
+// Import screens
+import { StitchDesign } from './screens/StitchDesign';
+import { AboutUsPage } from './screens/AboutUsPage';
+import { FeaturesPage } from './screens/FeaturesPage';
+import { PricingPage } from './screens/PricingPage';
+import { ContactPage } from './screens/ContactPage';
+import { HelpCenterPage } from './screens/HelpCenterPage';
+import { PrivacyPolicyPage } from './screens/PrivacyPolicyPage';
+import { TermsOfServicePage } from './screens/TermsOfServicePage';
+
+// Import auth screens
+import { LoginPage } from './screens/AuthPage/LoginPage';
+import { SignUpPage } from './screens/AuthPage/SignUpPage';
+import { CompleteProfilePage } from './screens/AuthPage/CompleteProfilePage';
+
+// Import dashboard
+import { Dashboard } from './screens/Dashboard';
+
+function App() {
   return (
     <AuthProvider>
       <Router>
-        <AuthRedirect>
+        <div className="App">
+          <SupabaseHealthCheck />
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<StitchDesign />} />
-            <Route path="/features" element={<FeaturesPage />} />
             <Route path="/about" element={<AboutUsPage />} />
-            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/help" element={<HelpCenterPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsOfServicePage />} />
-            <Route path="/help" element={<HelpCenterPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/complete-profile" element={<CompleteProfilePage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/ai-tutor" element={<AITutorPage />} />
-            <Route path="/dashboard/progress" element={<ProgressPage />} />
-            <Route path="/dashboard/materials" element={<StudyMaterialsPage />} />
-            <Route path="/dashboard/tests" element={<TestsPage />} />
-            <Route path="/dashboard/settings" element={<SettingsPage />} />
-            <Route path="/dashboard/settings/profile" element={<ProfileInformationPage />} />
-            <Route path="/dashboard/settings/billing" element={<PlanBillingPage />} />
-            <Route path="/dashboard/settings/notifications" element={<NotificationsPage />} />
-            <Route path="/dashboard/settings/account" element={<AccountActionsPage />} />
+
+            {/* Auth routes */}
+            <Route 
+              path="/login" 
+              element={
+                <AuthRedirect>
+                  <LoginPage />
+                </AuthRedirect>
+              } 
+            />
+            <Route 
+              path="/signup" 
+              element={
+                <AuthRedirect>
+                  <SignUpPage />
+                </AuthRedirect>
+              } 
+            />
+            <Route 
+              path="/complete-profile" 
+              element={
+                <ProtectedRoute>
+                  <CompleteProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Protected dashboard routes */}
+            <Route 
+              path="/dashboard/*" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Redirect unknown routes to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </AuthRedirect>
+        </div>
       </Router>
     </AuthProvider>
   );
-};
+}
+
+export default App;
