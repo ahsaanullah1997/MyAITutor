@@ -301,23 +301,6 @@ export const CompleteProfilePage = (): JSX.Element => {
                   </div>
                 )}
 
-                {/* Next Step Information */}
-                {formData.grade && requiresSubjectGroupSelection(formData.grade) && (
-                  <div className="p-3 md:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="text-blue-400 text-lg">📚</div>
-                      <div>
-                        <h4 className="[font-family:'Lexend',Helvetica] font-medium text-blue-400 mb-1 text-sm">
-                          Next: Subject Group Selection
-                        </h4>
-                        <p className="[font-family:'Lexend',Helvetica] theme-text-muted text-xs">
-                          After completing your profile, you'll choose your subject combination (e.g., Pre-Medical, Pre-Engineering, etc.)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3">
                   <Button 
