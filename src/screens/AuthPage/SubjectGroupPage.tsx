@@ -3,6 +3,7 @@ import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../contexts/AuthContext";
+import { DatabaseService } from "../../services/databaseService";
 
 export const SubjectGroupPage = (): JSX.Element => {
   const { user, profile, updateProfile } = useAuth();
@@ -17,7 +18,7 @@ export const SubjectGroupPage = (): JSX.Element => {
       return;
     }
     
-    if (!profile || !profile.grade || !profile.board) {
+    if (!profile || !profile.grade) {
       window.location.href = '/complete-profile';
       return;
     }
@@ -28,7 +29,6 @@ export const SubjectGroupPage = (): JSX.Element => {
     if (!profile) return [];
 
     const grade = profile.grade;
-    const board = profile.board;
 
     // Class 9 and 10 Metric (all boards have same structure)
     if (grade === "Class 9 (Metric)" || grade === "Class 10 (Metric)") {
@@ -104,7 +104,7 @@ export const SubjectGroupPage = (): JSX.Element => {
             'Urdu (Compulsory)',
             'Islamiyat (Compulsory)',
             'Physics',
-            'Computer',
+            'Computer Science',
             'Mathematics'
           ]
         }
@@ -149,7 +149,7 @@ export const SubjectGroupPage = (): JSX.Element => {
             'Urdu (Compulsory)',
             'Pakistan Studies (Compulsory)',
             'Physics',
-            'Computer',
+            'Computer Science',
             'Mathematics'
           ]
         }
@@ -238,16 +238,20 @@ export const SubjectGroupPage = (): JSX.Element => {
     try {
       const selectedGroupData = subjectGroups.find(group => group.id === selectedGroup);
       
-      if (!selectedGroupData) {
+      if (!selectedGroupData || !profile) {
         throw new Error("Invalid group selection");
       }
 
-      // Update profile with selected group and subjects
-      await updateProfile({
-        ...profile,
-        // Store the selected group and subjects in a way that can be used later
-        // You might want to add these fields to your UserProfile type
-      });
+      // Create user database with selected subjects
+      try {
+        await DatabaseService.createUserDatabase(user!.id, {
+          ...profile,
+          subject_group: selectedGroupData.id,
+          subjects: selectedGroupData.subjects
+        });
+      } catch (dbError) {
+        console.warn('Database service not available, continuing without database setup:', dbError);
+      }
 
       // Redirect to dashboard
       window.location.href = '/dashboard';

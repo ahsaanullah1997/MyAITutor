@@ -335,6 +335,7 @@ export interface UserDatabase {
   grade: string
   board?: string
   subjects: string[]
+  subject_group?: string
   created_at: string
   updated_at: string
 }

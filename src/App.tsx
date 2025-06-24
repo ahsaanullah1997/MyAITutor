@@ -10,7 +10,7 @@ import { PricingPage } from "./screens/PricingPage/index.ts";
 import { PrivacyPolicyPage } from "./screens/PrivacyPolicyPage/index.ts";
 import { TermsOfServicePage } from "./screens/TermsOfServicePage/index.ts";
 import { HelpCenterPage } from "./screens/HelpCenterPage/index.ts";
-import { SignUpPage, LoginPage, CompleteProfilePage } from "./screens/AuthPage/index.ts";
+import { SignUpPage, LoginPage, CompleteProfilePage, SubjectGroupPage } from "./screens/AuthPage/index.ts";
 import { 
   Dashboard, 
   AITutorPage, 
@@ -41,6 +41,7 @@ export const App = (): JSX.Element => {
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/complete-profile" element={<CompleteProfilePage />} />
+            <Route path="/subject-group" element={<SubjectGroupPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/ai-tutor" element={<AITutorPage />} />
             <Route path="/dashboard/progress" element={<ProgressPage />} />
