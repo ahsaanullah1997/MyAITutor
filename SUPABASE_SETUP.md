@@ -1,96 +1,169 @@
-# Supabase Setup Instructions
+# 🚨 URGENT: Supabase Setup Required
 
-Your application is experiencing connection errors to Supabase. This indicates either a configuration issue or that your Supabase project needs to be set up properly. Follow these steps:
+Your application is currently unable to connect to Supabase. The project `wunjmzwudxfqdswvadmp` appears to be inactive or deleted.
 
-## Current Issue
-The app is showing "Failed to fetch" and "Unable to connect to the database" errors. This typically means:
-1. Your Supabase project URL is incorrect or inaccessible
-2. The database tables haven't been created yet
-3. There's a network connectivity issue
-4. Your Supabase project may be paused or deleted
+## Quick Fix Steps
 
-## Step 1: Verify Your Supabase Project
-
+### Step 1: Create or Access Your Supabase Project
 1. Go to [https://supabase.com](https://supabase.com) and sign in
-2. Check if your project `tcxvzebkuvjgiasvxepx` still exists and is active
-3. If the project doesn't exist or is paused, you'll need to create a new one
+2. Either:
+   - **If you have an existing project**: Select it from your dashboard
+   - **If you need a new project**: Click "New Project" and create one
 
-## Step 2: Create a New Supabase Project (if needed)
+### Step 2: Get Your Credentials
+1. In your Supabase project dashboard, go to **Settings** → **API**
+2. Copy these two values:
+   - **Project URL** (e.g., `https://abcdefgh.supabase.co`)
+   - **anon public key** (starts with `eyJhbGciOiJIUzI1NiIs...`)
 
-If your project doesn't exist:
-1. Click "New Project" 
-2. Choose your organization
-3. Enter a project name (e.g., "my-learning-app")
-4. Enter a database password (save this somewhere safe)
-5. Choose a region close to your users
-6. Click "Create new project"
-
-## Step 3: Get Your Project Credentials
-
-1. Once your project is ready, go to your project dashboard
-2. Click on "Settings" in the left sidebar
-3. Click on "API" under Settings
-4. Copy these two values:
-   - **Project URL** (looks like: `https://your-project-id.supabase.co`)
-   - **anon public key** (a long string starting with `eyJ...`)
-
-## Step 4: Update Your Environment Variables
-
-Update your `.env` file with your actual Supabase credentials:
+### Step 3: Update Your .env File
+Replace the placeholder values in your `.env` file:
 
 ```env
-# Replace with your actual Supabase project credentials
-VITE_SUPABASE_URL=https://your-new-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...your-actual-key
+VITE_SUPABASE_URL=https://your-actual-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-actual-anon-key
 ```
 
-## Step 5: Set Up Authentication
+### Step 4: Configure Authentication
+1. In Supabase dashboard, go to **Authentication** → **Settings**
+2. Under **Site URL**, add: `http://localhost:5173`
+3. Turn OFF "Enable email confirmations" for development
 
-1. In your Supabase dashboard, go to "Authentication" in the left sidebar
-2. Click on "Settings" under Authentication
-3. Make sure "Enable email confirmations" is turned OFF for development
-4. Under "Site URL", add your local development URL: `http://localhost:5173`
+### Step 5: Set Up Database Tables
+1. Go to **SQL Editor** in your Supabase dashboard
+2. Run this SQL to create the required tables:
 
-## Step 6: Create Database Tables
+```sql
+-- Create user_profiles table
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  grade text NOT NULL,
+  board text DEFAULT '',
+  area text DEFAULT '',
+  profile_picture_url text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-Your app needs a `user_profiles` table:
+-- Enable RLS
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
-1. Go to "SQL Editor" in the left sidebar
-2. Click "New query"
-3. Copy and paste the entire contents of `supabase/migrations/20250614110210_small_river.sql`
-4. Click "Run" to execute the migration
+-- Create policy for users to manage their own profiles
+CREATE POLICY "Users can manage own profile"
+  ON user_profiles
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
-## Step 7: Test the Connection
+-- Create user_progress_stats table
+CREATE TABLE IF NOT EXISTS user_progress_stats (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  study_streak_days integer DEFAULT 0,
+  total_study_time_minutes integer DEFAULT 0,
+  completed_lessons integer DEFAULT 0,
+  total_tests_taken integer DEFAULT 0,
+  average_test_score numeric DEFAULT 0,
+  ai_sessions_count integer DEFAULT 0,
+  weekly_study_time integer DEFAULT 0,
+  monthly_study_time integer DEFAULT 0,
+  last_study_date timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id)
+);
 
-1. After updating the `.env` file, restart your development server:
-   ```bash
-   # Stop the server (Ctrl+C)
-   npm run dev
-   ```
-2. Check the browser console for connection test results
-3. The app should now connect successfully
+-- Enable RLS
+ALTER TABLE user_progress_stats ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for progress stats
+CREATE POLICY "Users can manage own progress"
+  ON user_progress_stats
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Create subject_progress table
+CREATE TABLE IF NOT EXISTS subject_progress (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_name text NOT NULL,
+  progress_percentage numeric DEFAULT 0,
+  completed_topics integer DEFAULT 0,
+  total_topics integer DEFAULT 0,
+  last_accessed timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, subject_name)
+);
+
+-- Enable RLS
+ALTER TABLE subject_progress ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for subject progress
+CREATE POLICY "Users can manage own subject progress"
+  ON subject_progress
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Create study_sessions table
+CREATE TABLE IF NOT EXISTS study_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  session_type text NOT NULL CHECK (session_type IN ('lesson', 'test', 'ai_tutor', 'materials')),
+  subject text NOT NULL,
+  duration_minutes integer NOT NULL,
+  score numeric,
+  session_date timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE study_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for study sessions
+CREATE POLICY "Users can manage own study sessions"
+  ON study_sessions
+  FOR ALL
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+```
+
+### Step 6: Restart Your App
+After updating the `.env` file:
+1. Stop your development server (Ctrl+C)
+2. Start it again: `npm run dev`
+
+## ⚠️ Important Notes
+
+- **Never commit real credentials to version control**
+- The `.env` file should be in your `.gitignore`
+- Use your **anon public key**, not the service role key
+- Make sure your Supabase project is not paused
 
 ## Troubleshooting
 
-### If you still see connection errors:
+### Still getting "Failed to fetch"?
+- Double-check your project URL format
+- Ensure your Supabase project is active (not paused)
+- Verify you're using the correct anon key
+- Check your internet connection
 
-1. **Check your internet connection** - Make sure you can access supabase.com
-2. **Verify project status** - Ensure your Supabase project is active (not paused)
-3. **Check the URL format** - Make sure it starts with `https://` and ends with `.supabase.co`
-4. **Verify the API key** - Make sure you copied the "anon public" key, not the service role key
-5. **Clear browser cache** - Sometimes old cached data can cause issues
+### Database errors?
+- Make sure you've run the SQL commands above
+- Check that RLS policies are properly set up
+- Verify your project has the required tables
 
-### Common Error Messages:
+### Need help?
+1. Check the browser console for detailed error messages
+2. Verify your Supabase project status in the dashboard
+3. Ensure all environment variables are correctly formatted
 
-- **"Failed to fetch"** - Usually means the project URL is wrong or the project doesn't exist
-- **"relation 'user_profiles' does not exist"** - The database migration hasn't been run
-- **"Connection timeout"** - Network issue or project is not responding
-
-### Still having issues?
-
-1. Try creating a completely new Supabase project
-2. Make sure there are no spaces around the `=` in your `.env` file
-3. Ensure your `.env` file is in the root directory of your project
-4. Check that the environment variables start with `VITE_`
-
-Once you've completed these steps, your authentication and database should work properly!
+Once you complete these steps, your authentication and database should work properly!
