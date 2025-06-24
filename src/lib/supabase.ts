@@ -227,7 +227,7 @@ const createResilientClient = (url: string, key: string) => {
                   
                   // If it's a promise (database operation), add error handling
                   if (result && typeof result.then === 'function') {
-                    return result.catch((error: any) => {
+                    return Promise.resolve(result).catch((error: any) => {
                       console.error(`🔄 Database operation ${tableProp} failed:`, error)
                       
                       const errorMessage = error instanceof Error ? error.message : 'Database connection error'
@@ -252,7 +252,7 @@ const createResilientClient = (url: string, key: string) => {
                             const chainResult = chainValue.apply(chainTarget, chainArgs)
                             
                             if (chainResult && typeof chainResult.then === 'function') {
-                              return chainResult.catch((error: any) => {
+                              return Promise.resolve(chainResult).catch((error: any) => {
                                 console.error(`🔄 Database chain operation ${chainProp} failed:`, error)
                                 
                                 const errorMessage = error instanceof Error ? error.message : 'Database connection error'
