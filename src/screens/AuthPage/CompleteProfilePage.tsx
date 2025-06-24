@@ -164,7 +164,11 @@ export const CompleteProfilePage = (): JSX.Element => {
       "Class 9 (Metric)",
       "Class 10 (Metric)", 
       "Class 11 (FSc)",
-      "Class 12 (FSc)"
+      "Class 12 (FSc)",
+      "O-levels",
+      "A-Levels",
+      "MDCAT",
+      "ECAT"
     ].includes(grade);
   };
 

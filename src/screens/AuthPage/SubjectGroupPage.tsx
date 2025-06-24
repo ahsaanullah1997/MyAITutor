@@ -3,10 +3,9 @@ import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../contexts/AuthContext";
-import { DatabaseService } from "../../services/databaseService";
 
 export const SubjectGroupPage = (): JSX.Element => {
-  const { user, profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile, markProfileCompleted } = useAuth();
   const [selectedGroup, setSelectedGroup] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -242,17 +241,10 @@ export const SubjectGroupPage = (): JSX.Element => {
         throw new Error("Invalid group selection");
       }
 
-      // Create user database with selected subjects
-      try {
-        await DatabaseService.createUserDatabase(user!.id, {
-          ...profile,
-          subject_group: selectedGroupData.id,
-          subjects: selectedGroupData.subjects
-        });
-      } catch (dbError) {
-        console.warn('Database service not available, continuing without database setup:', dbError);
-      }
-
+      // Store the subject group selection in the user's profile or database
+      // For now, we'll just mark the profile as completed and redirect
+      markProfileCompleted();
+      
       // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (error: any) {
