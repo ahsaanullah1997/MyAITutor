@@ -3,12 +3,14 @@ import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../contexts/AuthContext";
+import { SubjectGroupService, type SubjectGroup } from "../../services/subjectGroupService";
 
 export const SubjectGroupPage = (): JSX.Element => {
-  const { user, profile, updateProfile, markProfileCompleted } = useAuth();
+  const { user, profile, markProfileCompleted } = useAuth();
   const [selectedGroup, setSelectedGroup] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subjectGroups, setSubjectGroups] = useState<SubjectGroup[]>([]);
 
   // Redirect if not authenticated or profile not complete
   useEffect(() => {
@@ -21,207 +23,16 @@ export const SubjectGroupPage = (): JSX.Element => {
       window.location.href = '/complete-profile';
       return;
     }
+
+    // Load subject groups for the user's grade
+    const groups = SubjectGroupService.getSubjectGroups(profile.grade);
+    setSubjectGroups(groups);
+
+    // If there's only one group, auto-select it
+    if (groups.length === 1) {
+      setSelectedGroup(groups[0].id);
+    }
   }, [user, profile]);
-
-  // Subject group definitions
-  const getSubjectGroups = () => {
-    if (!profile) return [];
-
-    const grade = profile.grade;
-
-    // Class 9 and 10 Metric (all boards have same structure)
-    if (grade === "Class 9 (Metric)" || grade === "Class 10 (Metric)") {
-      return [
-        {
-          id: 'science-biology',
-          name: 'Science (Biology)',
-          description: 'Focus on biological sciences with core subjects',
-          subjects: [
-            'English',
-            'Urdu', 
-            'Islamiat (Compulsory)',
-            'Pakistan Studies',
-            'Mathematics',
-            'Physics',
-            'Chemistry',
-            'Biology'
-          ]
-        },
-        {
-          id: 'science-computer',
-          name: 'Science (Computer)',
-          description: 'Focus on computer science with core subjects',
-          subjects: [
-            'English',
-            'Urdu',
-            'Islamiat (Compulsory)', 
-            'Pakistan Studies',
-            'Mathematics',
-            'Physics',
-            'Chemistry',
-            'Computer Science'
-          ]
-        }
-      ];
-    }
-
-    // Class 11 FSc (all boards have same structure)
-    if (grade === "Class 11 (FSc)") {
-      return [
-        {
-          id: 'fsc-pre-medical',
-          name: 'FSc (Pre-Medical)',
-          description: 'Preparation for medical entrance exams',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Islamiyat (Compulsory)',
-            'Physics',
-            'Chemistry',
-            'Biology'
-          ]
-        },
-        {
-          id: 'fsc-pre-engineering',
-          name: 'FSc (Pre-Engineering)',
-          description: 'Preparation for engineering entrance exams',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Islamiyat (Compulsory)',
-            'Physics',
-            'Chemistry',
-            'Mathematics'
-          ]
-        },
-        {
-          id: 'fsc-ics',
-          name: 'FSc (ICS)',
-          description: 'Information and Computer Sciences',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Islamiyat (Compulsory)',
-            'Physics',
-            'Computer Science',
-            'Mathematics'
-          ]
-        }
-      ];
-    }
-
-    // Class 12 FSc (Pakistan Studies instead of Islamiyat)
-    if (grade === "Class 12 (FSc)") {
-      return [
-        {
-          id: 'fsc-pre-medical',
-          name: 'FSc (Pre-Medical)',
-          description: 'Preparation for medical entrance exams',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Pakistan Studies (Compulsory)',
-            'Physics',
-            'Chemistry',
-            'Biology'
-          ]
-        },
-        {
-          id: 'fsc-pre-engineering',
-          name: 'FSc (Pre-Engineering)',
-          description: 'Preparation for engineering entrance exams',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Pakistan Studies (Compulsory)',
-            'Physics',
-            'Chemistry',
-            'Mathematics'
-          ]
-        },
-        {
-          id: 'fsc-ics',
-          name: 'FSc (ICS)',
-          description: 'Information and Computer Sciences',
-          subjects: [
-            'English (Compulsory)',
-            'Urdu (Compulsory)',
-            'Pakistan Studies (Compulsory)',
-            'Physics',
-            'Computer Science',
-            'Mathematics'
-          ]
-        }
-      ];
-    }
-
-    // O-levels and A-levels don't have predefined groups
-    if (grade === "O-levels" || grade === "A-Levels") {
-      return [
-        {
-          id: 'cambridge-standard',
-          name: 'Cambridge Standard',
-          description: 'Standard Cambridge curriculum subjects',
-          subjects: grade === "O-levels" ? [
-            'English Language',
-            'Mathematics',
-            'Physics',
-            'Chemistry',
-            'Biology',
-            'Pakistan Studies',
-            'Islamiyat',
-            'Computer Science'
-          ] : [
-            'Mathematics',
-            'Physics',
-            'Chemistry',
-            'Biology',
-            'Economics',
-            'Computer Science',
-            'Psychology'
-          ]
-        }
-      ];
-    }
-
-    // MDCAT and ECAT have fixed subjects
-    if (grade === "MDCAT") {
-      return [
-        {
-          id: 'mdcat-standard',
-          name: 'MDCAT Preparation',
-          description: 'Medical and Dental College Admission Test preparation',
-          subjects: [
-            'Biology',
-            'Chemistry',
-            'Physics',
-            'English',
-            'Logical Reasoning'
-          ]
-        }
-      ];
-    }
-
-    if (grade === "ECAT") {
-      return [
-        {
-          id: 'ecat-standard',
-          name: 'ECAT Preparation',
-          description: 'Engineering College Admission Test preparation',
-          subjects: [
-            'Mathematics',
-            'Physics',
-            'Chemistry',
-            'English'
-          ]
-        }
-      ];
-    }
-
-    return [];
-  };
-
-  const subjectGroups = getSubjectGroups();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,18 +42,19 @@ export const SubjectGroupPage = (): JSX.Element => {
       return;
     }
 
+    if (!profile) {
+      setError("Profile information is missing");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const selectedGroupData = subjectGroups.find(group => group.id === selectedGroup);
+      // Save the subject group selection
+      await SubjectGroupService.saveSubjectGroupSelection(user!.id, selectedGroup, profile);
       
-      if (!selectedGroupData || !profile) {
-        throw new Error("Invalid group selection");
-      }
-
-      // Store the subject group selection in the user's profile or database
-      // For now, we'll just mark the profile as completed and redirect
+      // Mark profile as completed
       markProfileCompleted();
       
       // Redirect to dashboard
@@ -264,6 +76,13 @@ export const SubjectGroupPage = (): JSX.Element => {
         </div>
       </div>
     );
+  }
+
+  // If no subject groups available, redirect to dashboard
+  if (subjectGroups.length === 0) {
+    markProfileCompleted();
+    window.location.href = '/dashboard';
+    return null;
   }
 
   return (

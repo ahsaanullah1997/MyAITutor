@@ -3,6 +3,7 @@ import { HeroSection } from "../StitchDesign/sections/HeroSection/index.ts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../contexts/AuthContext";
+import { SubjectGroupService } from "../../services/subjectGroupService";
 
 export const CompleteProfilePage = (): JSX.Element => {
   const { user, updateProfile, isNewUser, markProfileCompleted } = useAuth();
@@ -106,11 +107,13 @@ export const CompleteProfilePage = (): JSX.Element => {
         board: formData.board,
       }, formData.profilePicture || undefined);
       
-      // Redirect to subject group selection for grades that need it
-      if (requiresSubjectGroupSelection(formData.grade)) {
+      // Check if this grade requires subject group selection
+      if (SubjectGroupService.requiresSubjectGroupSelection(formData.grade)) {
+        // Redirect to subject group selection
         window.location.href = '/subject-group';
       } else {
-        // Redirect directly to dashboard for grades that don't need group selection
+        // Mark profile as completed and redirect to dashboard
+        markProfileCompleted();
         window.location.href = '/dashboard';
       }
     } catch (error: any) {
@@ -155,20 +158,6 @@ export const CompleteProfilePage = (): JSX.Element => {
       "Class 10 (Metric)", 
       "Class 11 (FSc)",
       "Class 12 (FSc)"
-    ].includes(grade);
-  };
-
-  // Check if selected grade requires subject group selection
-  const requiresSubjectGroupSelection = (grade: string) => {
-    return [
-      "Class 9 (Metric)",
-      "Class 10 (Metric)", 
-      "Class 11 (FSc)",
-      "Class 12 (FSc)",
-      "O-levels",
-      "A-Levels",
-      "MDCAT",
-      "ECAT"
     ].includes(grade);
   };
 
@@ -314,7 +303,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                         {formData.profilePicture ? 'Uploading...' : 'Saving Profile...'}
                       </div>
                     ) : (
-                      requiresSubjectGroupSelection(formData.grade) ? 'Continue to Subject Selection' : 'Complete Profile'
+                      SubjectGroupService.requiresSubjectGroupSelection(formData.grade) ? 'Continue to Subject Selection' : 'Complete Profile'
                     )}
                   </Button>
 
