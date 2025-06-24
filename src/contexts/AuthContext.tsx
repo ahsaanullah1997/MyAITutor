@@ -56,8 +56,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Profile loaded successfully:', userProfile)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
-      console.log('Profile loading skipped in offline mode:', errorMessage)
-      // Don't set error in offline mode
+      
+      // Handle expected scenarios (no profile found) differently from actual errors
+      if (errorMessage.includes('No rows found') || 
+          errorMessage.includes('PGRST116') || 
+          errorMessage.includes('not configured')) {
+        console.log('No user profile found for user:', userId, '- this is expected for new users')
+      } else {
+        console.error('Error fetching user profile:', error)
+      }
+      
+      // Only set error for critical issues, not missing profiles or connection issues
+      if (!errorMessage.includes('No rows found') && 
+          !errorMessage.includes('PGRST116') && 
+          !errorMessage.includes('not configured')) {
+        
+        // For connection issues, provide a more user-friendly message
+        if (errorMessage.includes('Unable to connect') || 
+            errorMessage.includes('Connection timeout') ||
+            errorMessage.includes('Failed to fetch')) {
+          setError('Unable to load profile data. Please check your internet connection and try refreshing the page.')
+        } else if (errorMessage.includes('Database table not found')) {
+          setError('Database setup incomplete. Please contact support or check the setup instructions.')
+        } else {
+          setError(errorMessage)
+        }
+      }
       setProfile(null)
     }
   }
@@ -76,8 +100,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('Progress loaded successfully')
     } catch (error) {
-      console.log('Progress loading skipped in offline mode:', error)
-      // Don't set error for progress loading failures in offline mode
+      console.error('Error loading user progress:', error)
+      // Don't set error for progress loading failures - it's not critical
     }
   }
 
@@ -100,14 +124,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Refresh progress after recording session
       await refreshProgress()
     } catch (error) {
-      console.log('Study session recording skipped in offline mode:', error)
-      // Don't throw error in offline mode
+      console.error('Error recording study session:', error)
+      throw error
     }
   }
 
   const retryProfileLoad = async () => {
     if (user) {
-      setError(null) // Clear any existing errors
       await loadUserProfile(user.id)
       await loadUserProgress(user.id)
     }
@@ -123,28 +146,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let mounted = true
     let subscription: any = null
 
-    // Get initial session
+    // Get initial session with better error handling
     const getInitialSession = async () => {
       try {
         setError(null)
-        console.log('🔄 Running in OFFLINE MODE - authentication disabled')
+        console.log('Getting initial session...')
         
-        if (!mounted) return
+        // Reduced timeout for faster failure detection
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => {
+          controller.abort()
+        }, 5000) // Reduced to 5 seconds timeout
         
-        // In offline mode, no user by default
-        setUser(null)
-        setProfile(null)
-        setProgressStats(null)
-        setSubjectProgress([])
-        setIsNewUser(false)
+        try {
+          const currentUser = await AuthService.getCurrentUser()
+          clearTimeout(timeoutId)
+          
+          if (!mounted) return
+          
+          console.log('Initial session result:', currentUser ? 'User found' : 'No user')
+          setUser(currentUser)
+          
+          if (currentUser) {
+            // Check if this is a new user
+            const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
+            setIsNewUser(isNewUserFlag)
+            
+            // Load profile and progress in background, don't block UI
+            loadUserProfile(currentUser.id).catch(console.error)
+            loadUserProgress(currentUser.id).catch(console.error)
+          }
+        } catch (authError) {
+          clearTimeout(timeoutId)
+          
+          if (authError instanceof Error && authError.name === 'AbortError') {
+            console.warn('Session check timeout - continuing without authentication')
+            // Don't throw error, just continue without auth
+          } else {
+            throw authError
+          }
+        }
       } catch (error) {
-        console.log('Session initialization skipped in offline mode:', error)
+        console.error('Error getting initial session:', error)
         
         if (mounted) {
           setUser(null)
           setProfile(null)
           setProgressStats(null)
           setSubjectProgress([])
+          
+          // Only set error for critical issues
+          const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
+          if (!errorMessage.includes('not configured') && 
+              !errorMessage.includes('timeout') &&
+              !errorMessage.includes('Failed to fetch')) {
+            setError('Authentication service temporarily unavailable. Please try refreshing the page.')
+          }
         }
       } finally {
         if (mounted) {
@@ -155,14 +212,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     getInitialSession()
 
-    // Listen for auth changes
+    // Listen for auth changes with optimized handling and proper error handling
     try {
       const authListener = AuthService.onAuthStateChange(
         async (event, session) => {
           if (!mounted) return
           
-          console.log('Auth state change (offline mode):', event, session ? 'Session exists' : 'No session')
-          setError(null)
+          console.log('Auth state change:', event, session ? 'Session exists' : 'No session')
+          setError(null) // Clear errors on auth state change
           setSession(session)
           setUser(session?.user ?? null)
           
@@ -171,73 +228,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
             setIsNewUser(isNewUserFlag)
             
-            // Create mock profile for offline mode
-            const mockProfile: UserProfile = {
-              id: session.user.id,
-              first_name: 'Demo',
-              last_name: 'User',
-              grade: 'Class 10 (Metric)',
-              board: 'Punjab Board',
-              area: 'BISE Lahore',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-            setProfile(mockProfile)
-            
-            // Create mock progress stats
-            const mockStats: UserProgressStats = {
-              id: 'mock-stats-id',
-              user_id: session.user.id,
-              study_streak_days: 5,
-              total_study_time_minutes: 240,
-              completed_lessons: 12,
-              total_tests_taken: 3,
-              average_test_score: 85,
-              ai_sessions_count: 8,
-              weekly_study_time: 120,
-              monthly_study_time: 480,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-            setProgressStats(mockStats)
-            
-            // Create mock subject progress
-            const mockSubjects: SubjectProgress[] = [
-              {
-                id: 'mock-math',
-                user_id: session.user.id,
-                subject_name: 'Mathematics',
-                progress_percentage: 75,
-                completed_topics: 15,
-                total_topics: 20,
-                last_accessed: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              },
-              {
-                id: 'mock-physics',
-                user_id: session.user.id,
-                subject_name: 'Physics',
-                progress_percentage: 60,
-                completed_topics: 12,
-                total_topics: 20,
-                last_accessed: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              },
-              {
-                id: 'mock-chemistry',
-                user_id: session.user.id,
-                subject_name: 'Chemistry',
-                progress_percentage: 85,
-                completed_topics: 17,
-                total_topics: 20,
-                last_accessed: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }
-            ]
-            setSubjectProgress(mockSubjects)
+            // Load profile and progress asynchronously
+            loadUserProfile(session.user.id).catch(console.error)
+            loadUserProgress(session.user.id).catch(console.error)
           } else {
             setProfile(null)
             setProgressStats(null)
@@ -245,27 +238,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setIsNewUser(false)
           }
           
+          // Set loading to false immediately for auth state changes
           setLoading(false)
         }
       )
 
+      // Safely extract subscription with null checks
       if (authListener && authListener.data && authListener.data.subscription) {
         subscription = authListener.data.subscription
+      } else {
+        console.warn('Auth listener did not return expected subscription object')
       }
     } catch (error) {
-      console.log('Auth listener setup skipped in offline mode:', error)
+      console.error('Error setting up auth state listener:', error)
+      // Set a user-friendly error message
       if (mounted) {
+        setError('Authentication service not available. Please check your connection and try refreshing the page.')
         setLoading(false)
       }
     }
 
     return () => {
       mounted = false
+      // Safely unsubscribe only if subscription exists and has unsubscribe method
       if (subscription && typeof subscription.unsubscribe === 'function') {
         try {
           subscription.unsubscribe()
         } catch (error) {
-          console.log('Auth unsubscribe skipped in offline mode:', error)
+          console.error('Error unsubscribing from auth changes:', error)
         }
       }
     }
@@ -281,14 +281,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsNewUser(true)
       
       await AuthService.signUp(data)
+      // Don't set loading to false here - let auth state change handle it
     } catch (error) {
       setLoading(false)
       // Clear new user flag on error
       localStorage.removeItem('isNewUser')
       setIsNewUser(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
-      console.log('Sign up completed in offline mode')
-      // Don't set error in offline mode
+      setError(errorMessage)
+      throw error
     }
   }
 
@@ -302,11 +303,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsNewUser(false)
       
       await AuthService.signIn(data)
+      // Don't set loading to false here - let auth state change handle it
     } catch (error) {
       setLoading(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
-      console.log('Sign in completed in offline mode')
-      // Don't set error in offline mode
+      setError(errorMessage)
+      throw error
     }
   }
 
@@ -326,7 +328,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSubjectProgress([])
       setSession(null)
     } catch (error) {
-      console.log('Sign out completed in offline mode')
+      const errorMessage = error instanceof Error ? error.message : 'Sign out failed'
+      setError(errorMessage)
+      throw error
     } finally {
       setLoading(false)
     }
@@ -338,26 +342,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null)
       
-      // In offline mode, just update local state
-      const updatedProfile = {
+      // Merge updates with existing profile data to preserve required fields
+      const profileData = {
         ...profile,
         ...updates,
+        // Ensure required fields are always present
         first_name: updates.first_name || profile?.first_name || '',
         last_name: updates.last_name || profile?.last_name || '',
-        grade: updates.grade || profile?.grade || '',
-        updated_at: new Date().toISOString()
-      } as UserProfile
-      
-      setProfile(updatedProfile)
-      
-      // If this was a new user completing their profile, mark as completed
-      if (isNewUser) {
-        markProfileCompleted()
+        grade: updates.grade || profile?.grade || ''
       }
       
-      console.log('Profile updated in offline mode:', updatedProfile)
+      const updatedProfile = await AuthService.updateUserProfile(user.id, profileData, profilePicture)
+      setProfile(updatedProfile)
+      
+      // If this was a new user completing their profile, mark as completed and initialize progress
+      if (isNewUser) {
+        markProfileCompleted()
+        // Initialize progress tracking for new user
+        await ProgressService.initializeUserProgress(user.id)
+        await ProgressService.initializeSubjects(user.id)
+        await loadUserProgress(user.id)
+      }
     } catch (error) {
-      console.log('Profile update completed in offline mode')
+      const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
+      setError(errorMessage)
+      throw error
     }
   }
 

@@ -1,102 +1,59 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthRedirect } from './components/AuthRedirect';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { AuthRedirect } from "./components/AuthRedirect";
+import { StitchDesign } from "./screens/StitchDesign";
+import { FeaturesPage } from "./screens/FeaturesPage/index.ts";
+import { AboutUsPage } from "./screens/AboutUsPage/index.ts";
+import { ContactPage } from "./screens/ContactPage/index.ts";
+import { PricingPage } from "./screens/PricingPage/index.ts";
+import { PrivacyPolicyPage } from "./screens/PrivacyPolicyPage/index.ts";
+import { TermsOfServicePage } from "./screens/TermsOfServicePage/index.ts";
+import { HelpCenterPage } from "./screens/HelpCenterPage/index.ts";
+import { SignUpPage, LoginPage, CompleteProfilePage } from "./screens/AuthPage/index.ts";
+import { 
+  Dashboard, 
+  AITutorPage, 
+  ProgressPage, 
+  StudyMaterialsPage, 
+  TestsPage, 
+  SettingsPage,
+  ProfileInformationPage,
+  PlanBillingPage,
+  NotificationsPage,
+  AccountActionsPage
+} from "./screens/Dashboard/index.ts";
 
-// Import screens
-import { StitchDesign } from './screens/StitchDesign';
-import { AboutUsPage } from './screens/AboutUsPage';
-import { FeaturesPage } from './screens/FeaturesPage';
-import { PricingPage } from './screens/PricingPage';
-import { ContactPage } from './screens/ContactPage';
-import { HelpCenterPage } from './screens/HelpCenterPage';
-import { PrivacyPolicyPage } from './screens/PrivacyPolicyPage';
-import { TermsOfServicePage } from './screens/TermsOfServicePage';
-
-// Import auth screens
-import { LoginPage } from './screens/AuthPage/LoginPage';
-import { SignUpPage } from './screens/AuthPage/SignUpPage';
-import { CompleteProfilePage } from './screens/AuthPage/CompleteProfilePage';
-
-// Import dashboard
-import { Dashboard } from './screens/Dashboard';
-
-// Offline mode notification component
-const OfflineModeNotification = () => (
-  <div className="fixed top-4 right-4 bg-blue-100 border border-blue-300 rounded-lg p-4 max-w-md z-50">
-    <div className="flex items-center space-x-2">
-      <span className="text-blue-600 text-lg">🔄</span>
-      <div>
-        <h3 className="font-bold text-blue-800">Offline Mode</h3>
-        <p className="text-blue-700 text-sm">
-          Supabase disconnected. Create new project and update .env to reconnect.
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
-function App() {
+export const App = (): JSX.Element => {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
-          <OfflineModeNotification />
+        <AuthRedirect>
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<StitchDesign />} />
-            <Route path="/about" element={<AboutUsPage />} />
             <Route path="/features" element={<FeaturesPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutUsPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/help" element={<HelpCenterPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsOfServicePage />} />
-
-            {/* Auth routes */}
-            <Route 
-              path="/login" 
-              element={
-                <AuthRedirect>
-                  <LoginPage />
-                </AuthRedirect>
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                <AuthRedirect>
-                  <SignUpPage />
-                </AuthRedirect>
-              } 
-            />
-            <Route 
-              path="/complete-profile" 
-              element={
-                <ProtectedRoute>
-                  <CompleteProfilePage />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Protected dashboard routes */}
-            <Route 
-              path="/dashboard/*" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Redirect unknown routes to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/help" element={<HelpCenterPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/complete-profile" element={<CompleteProfilePage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/ai-tutor" element={<AITutorPage />} />
+            <Route path="/dashboard/progress" element={<ProgressPage />} />
+            <Route path="/dashboard/materials" element={<StudyMaterialsPage />} />
+            <Route path="/dashboard/tests" element={<TestsPage />} />
+            <Route path="/dashboard/settings" element={<SettingsPage />} />
+            <Route path="/dashboard/settings/profile" element={<ProfileInformationPage />} />
+            <Route path="/dashboard/settings/billing" element={<PlanBillingPage />} />
+            <Route path="/dashboard/settings/notifications" element={<NotificationsPage />} />
+            <Route path="/dashboard/settings/account" element={<AccountActionsPage />} />
           </Routes>
-        </div>
+        </AuthRedirect>
       </Router>
     </AuthProvider>
   );
-}
-
-export default App;
+};
