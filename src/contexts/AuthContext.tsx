@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { AuthService } from '../services/authService'
 import { ProgressService } from '../services/progressService'
+import { DatabaseService } from '../services/databaseService'
 import type { UserProfile, UserProgressStats, SubjectProgress } from '../lib/supabase'
 
 interface AuthContextType {
@@ -388,10 +389,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If this was a new user completing their profile, mark as completed and initialize progress
       if (isNewUser) {
         markProfileCompleted()
+        
+        // Create personalized database for the user
+        try {
+          await DatabaseService.createUserDatabase(user.id, updatedProfile)
+          console.log('User database created successfully')
+        } catch (dbError) {
+          console.error('Error creating user database:', dbError)
+          // Don't throw error - profile update was successful
+        }
+        
         // Initialize progress tracking for new user
         await ProgressService.initializeUserProgress(user.id)
         await ProgressService.initializeSubjects(user.id)
         await loadUserProgress(user.id)
+      } else {
+        // For existing users, update their database if grade/board changed
+        if (updates.grade || updates.board) {
+          try {
+            await DatabaseService.updateUserDatabase(user.id, updatedProfile)
+            console.log('User database updated successfully')
+            // Refresh progress to reflect new subjects
+            await loadUserProgress(user.id)
+          } catch (dbError) {
+            console.error('Error updating user database:', dbError)
+            // Don't throw error - profile update was successful
+          }
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'

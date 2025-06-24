@@ -9,7 +9,6 @@ export const CompleteProfilePage = (): JSX.Element => {
   const [formData, setFormData] = useState({
     grade: '',
     board: '',
-    area: '',
     profilePicture: null as File | null
   });
   const [loading, setLoading] = useState(false);
@@ -39,15 +38,9 @@ export const CompleteProfilePage = (): JSX.Element => {
         [name]: value
       };
       
-      // Clear board and area selection if grade doesn't require it
+      // Clear board selection if grade doesn't require it
       if (name === 'grade' && !requiresBoardSelection(value)) {
         newData.board = '';
-        newData.area = '';
-      }
-      
-      // Clear area selection if board doesn't require it
-      if (name === 'board' && !requiresAreaSelection(value)) {
-        newData.area = '';
       }
       
       return newData;
@@ -99,16 +92,9 @@ export const CompleteProfilePage = (): JSX.Element => {
       return;
     }
 
-    // Board validation for Metric and FSc grades
+    // Board validation for grades that require board selection
     if (requiresBoardSelection(formData.grade) && !formData.board) {
-      setError("Please select your education board");
-      setLoading(false);
-      return;
-    }
-
-    // Area validation for Punjab and Sindh boards
-    if (requiresAreaSelection(formData.board) && !formData.area) {
-      setError("Please select your area/region");
+      setError("Please select your examination board");
       setLoading(false);
       return;
     }
@@ -118,7 +104,6 @@ export const CompleteProfilePage = (): JSX.Element => {
       await updateProfile({
         grade: formData.grade,
         board: formData.board,
-        area: formData.area,
       }, formData.profilePicture || undefined);
       
       // Redirect to dashboard
@@ -140,12 +125,12 @@ export const CompleteProfilePage = (): JSX.Element => {
   const grades = [
     "Class 9 (Metric)",
     "Class 10 (Metric)",
-    "Class 11 (FSc/FA)",
-    "Class 12 (FSc/FA)",
-    "O-Level",
-    "A-Level",
-    "MDCAT Preparation",
-    "ECAT Preparation"
+    "Class 11 (FSc)",
+    "Class 12 (FSc)",
+    "O-levels",
+    "A-Levels",
+    "MDCAT",
+    "ECAT"
   ];
 
   // Board options for Pakistani education system
@@ -153,44 +138,19 @@ export const CompleteProfilePage = (): JSX.Element => {
     "Federal Board",
     "Punjab Board", 
     "Sindh Board",
-    "Khyber Pakhtunkhwa Board",
-    "AJK Mirpur Board",
-    "Baluchistan Board"
+    "KPK Board",
+    "Baluchistan Board",
+    "AJK Board"
   ];
-
-  // Area options for specific boards
-  const boardAreas = {
-    "Punjab Board": [
-      "BISE Lahore",
-      "BISE Gujranwala",
-      "BISE Faisalabad",
-      "BISE Multan",
-      "BISE Bahawalpur",
-      "BISE Dera Ghazi Khan",
-      "BISE Rawalpindi"
-    ],
-    "Sindh Board": [
-      "BISE Karachi",
-      "BISE Hyderabad",
-      "BISE Sukkur",
-      "BISE Larkana",
-      "BISE Mirpurkhas"
-    ]
-  };
 
   // Check if selected grade requires board selection
   const requiresBoardSelection = (grade: string) => {
     return [
       "Class 9 (Metric)",
       "Class 10 (Metric)", 
-      "Class 11 (FSc/FA)",
-      "Class 12 (FSc/FA)"
+      "Class 11 (FSc)",
+      "Class 12 (FSc)"
     ].includes(grade);
-  };
-
-  // Check if selected board requires area selection
-  const requiresAreaSelection = (board: string) => {
-    return ["Punjab Board", "Sindh Board"].includes(board);
   };
 
   // Show loading if checking user state
@@ -260,7 +220,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                   </div>
                   <div className="text-center">
                     <p className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-sm mb-1">
-                      Profile Picture
+                      Profile Picture (Optional)
                     </p>
                     <p className="[font-family:'Lexend',Helvetica] theme-text-muted text-xs">
                       Click the camera icon to upload a photo
@@ -300,7 +260,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                 {requiresBoardSelection(formData.grade) && (
                   <div className="flex flex-col gap-2">
                     <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
-                      Education Board *
+                      Examination Board *
                     </label>
                     <select
                       name="board"
@@ -309,36 +269,16 @@ export const CompleteProfilePage = (): JSX.Element => {
                       required
                       className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
                     >
-                      <option value="" className="theme-text-muted">Select your board</option>
+                      <option value="" className="theme-text-muted">Select your examination board</option>
                       {boards.map((board) => (
                         <option key={board} value={board} className="theme-text-primary theme-bg-primary">
                           {board}
                         </option>
                       ))}
                     </select>
-                  </div>
-                )}
-
-                {/* Area Selection - Only show for Punjab and Sindh boards */}
-                {requiresAreaSelection(formData.board) && (
-                  <div className="flex flex-col gap-2">
-                    <label className="[font-family:'Lexend',Helvetica] font-medium theme-text-primary text-xs md:text-sm">
-                      Area/Region *
-                    </label>
-                    <select
-                      name="area"
-                      value={formData.area}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 md:px-4 py-2 md:py-3 theme-bg-primary theme-border border rounded-lg theme-text-primary focus:border-[#3f8cbf] focus:outline-none transition-colors [font-family:'Lexend',Helvetica] text-sm md:text-base"
-                    >
-                      <option value="" className="theme-text-muted">Select your area</option>
-                      {boardAreas[formData.board as keyof typeof boardAreas]?.map((area) => (
-                        <option key={area} value={area} className="theme-text-primary theme-bg-primary">
-                          {area}
-                        </option>
-                      ))}
-                    </select>
+                    <p className="[font-family:'Lexend',Helvetica] theme-text-muted text-xs">
+                      This helps us provide content specific to your examination board
+                    </p>
                   </div>
                 )}
 
