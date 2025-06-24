@@ -56,32 +56,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Profile loaded successfully:', userProfile)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load user profile'
+      console.error('Error fetching user profile:', errorMessage)
       
-      // Handle expected scenarios (no profile found) differently from actual errors
-      if (errorMessage.includes('No rows found') || 
-          errorMessage.includes('PGRST116') || 
-          errorMessage.includes('not configured')) {
-        console.log('No user profile found for user:', userId, '- this is expected for new users')
+      // Handle different types of errors more specifically
+      if (errorMessage.includes('SUPABASE_CONNECTION_FAILED') || 
+          errorMessage.includes('Cannot connect to Supabase database')) {
+        setError('🚨 Database Connection Failed\n\nPlease check:\n• Your .env file has correct Supabase credentials\n• Go to https://supabase.com → Settings → API to verify\n• Restart development server after updating .env\n• Ensure Auth Site URL includes http://localhost:5173')
+      } else if (errorMessage.includes('No rows found') || 
+                 errorMessage.includes('PGRST116')) {
+        console.log('No user profile found - this is expected for new users')
+        // Don't set error for missing profiles
+      } else if (errorMessage.includes('JWT') || errorMessage.includes('Invalid API key')) {
+        setError('🚨 Invalid API Key\n\nPlease check your VITE_SUPABASE_ANON_KEY in the .env file.\nGet the correct key from: https://supabase.com → Settings → API')
+      } else if (errorMessage.includes('Failed to fetch') || 
+                 errorMessage.includes('NetworkError') ||
+                 errorMessage.includes('Connection timeout')) {
+        setError('🚨 Network Connection Failed\n\nPlease check:\n• Your internet connection\n• VITE_SUPABASE_URL is correct in .env file\n• Supabase project is accessible')
+      } else if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+        setError('🚨 Database Tables Missing\n\nPlease run the database migrations from the supabase/migrations/ folder in your Supabase SQL Editor.')
       } else {
-        console.error('Error fetching user profile:', error)
+        // For other errors, provide a more user-friendly message
+        setError(`Unable to load profile: ${errorMessage}\n\nPlease check your Supabase configuration and try refreshing the page.`)
       }
       
-      // Only set error for critical issues, not missing profiles or connection issues
-      if (!errorMessage.includes('No rows found') && 
-          !errorMessage.includes('PGRST116') && 
-          !errorMessage.includes('not configured')) {
-        
-        // For connection issues, provide a more user-friendly message
-        if (errorMessage.includes('Unable to connect') || 
-            errorMessage.includes('Connection timeout') ||
-            errorMessage.includes('Failed to fetch')) {
-          setError('Unable to load profile data. Please check your internet connection and try refreshing the page.')
-        } else if (errorMessage.includes('Database table not found')) {
-          setError('Database setup incomplete. Please contact support or check the setup instructions.')
-        } else {
-          setError(errorMessage)
-        }
-      }
       setProfile(null)
     }
   }
@@ -101,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Progress loaded successfully')
     } catch (error) {
       console.error('Error loading user progress:', error)
-      // Don't set error for progress loading failures - it's not critical
+      // Don't set error for progress loading failures - it's not critical for basic functionality
     }
   }
 
@@ -131,6 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const retryProfileLoad = async () => {
     if (user) {
+      setError(null) // Clear any existing errors
       await loadUserProfile(user.id)
       await loadUserProgress(user.id)
     }
@@ -146,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let mounted = true
     let subscription: any = null
 
-    // Get initial session with better error handling
+    // Get initial session with improved error handling
     const getInitialSession = async () => {
       try {
         setError(null)
@@ -156,7 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           controller.abort()
-        }, 5000) // Reduced to 5 seconds timeout
+        }, 8000) // Increased timeout slightly for better reliability
         
         try {
           const currentUser = await AuthService.getCurrentUser()
@@ -195,12 +193,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProgressStats(null)
           setSubjectProgress([])
           
-          // Only set error for critical issues
+          // Provide more specific error messages
           const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
-          if (!errorMessage.includes('not configured') && 
-              !errorMessage.includes('timeout') &&
-              !errorMessage.includes('Failed to fetch')) {
-            setError('Authentication service temporarily unavailable. Please try refreshing the page.')
+          if (errorMessage.includes('SUPABASE_CONNECTION_FAILED')) {
+            setError('🚨 Supabase Connection Failed\n\nPlease verify your environment variables and restart the development server.')
+          } else if (!errorMessage.includes('not configured') && 
+                     !errorMessage.includes('timeout') &&
+                     !errorMessage.includes('Failed to fetch')) {
+            setError('Authentication service temporarily unavailable. Please check your Supabase configuration and try refreshing the page.')
           }
         }
       } finally {
@@ -212,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     getInitialSession()
 
-    // Listen for auth changes with optimized handling and proper error handling
+    // Listen for auth changes with improved error handling
     try {
       const authListener = AuthService.onAuthStateChange(
         async (event, session) => {
@@ -251,9 +251,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Error setting up auth state listener:', error)
-      // Set a user-friendly error message
+      // Set a more specific error message
       if (mounted) {
-        setError('Authentication service not available. Please check your connection and try refreshing the page.')
+        const errorMessage = error instanceof Error ? error.message : 'Auth setup failed'
+        if (errorMessage.includes('SUPABASE_CONNECTION_FAILED')) {
+          setError('🚨 Supabase Connection Failed\n\nPlease check your .env file and restart the development server.')
+        } else {
+          setError('Authentication service not available. Please check your Supabase configuration and try refreshing the page.')
+        }
         setLoading(false)
       }
     }
@@ -288,7 +293,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('isNewUser')
       setIsNewUser(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign up failed'
-      setError(errorMessage)
+      
+      // Provide more specific error messages for sign up
+      if (errorMessage.includes('SUPABASE_CONNECTION_FAILED')) {
+        setError('🚨 Cannot sign up - Supabase connection failed\n\nPlease check your .env file and restart the development server.')
+      } else {
+        setError(errorMessage)
+      }
       throw error
     }
   }
@@ -307,7 +318,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       setLoading(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
-      setError(errorMessage)
+      
+      // Provide more specific error messages for sign in
+      if (errorMessage.includes('SUPABASE_CONNECTION_FAILED')) {
+        setError('🚨 Cannot sign in - Supabase connection failed\n\nPlease check your .env file and restart the development server.')
+      } else {
+        setError(errorMessage)
+      }
       throw error
     }
   }
@@ -365,7 +382,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
-      setError(errorMessage)
+      
+      // Provide more specific error messages for profile updates
+      if (errorMessage.includes('SUPABASE_CONNECTION_FAILED')) {
+        setError('🚨 Cannot update profile - Supabase connection failed\n\nPlease check your .env file and restart the development server.')
+      } else {
+        setError(errorMessage)
+      }
       throw error
     }
   }

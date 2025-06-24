@@ -30,13 +30,11 @@ let isUsingMockClient = false
 const createMockClient = (reason: string) => {
   console.error(`🚨 CRITICAL: Using mock Supabase client - ${reason}`)
   console.error('📋 IMMEDIATE ACTION REQUIRED:')
-  console.error('   1. Go to https://supabase.com and check your project status')
-  console.error('   2. If project is PAUSED → Click "Resume" button')
-  console.error('   3. If project is DELETED → Create a new project')
-  console.error('   4. Update your .env file with correct credentials')
-  console.error('   5. Run database migrations from supabase/migrations/')
-  console.error('   6. Restart your development server')
-  console.error('   📖 See SUPABASE_CONNECTION_FIX.md for detailed instructions')
+  console.error('   1. Go to https://supabase.com → Your Project → Settings → API')
+  console.error('   2. Copy the exact Project URL and anon public key')
+  console.error('   3. Update your .env file with these correct values')
+  console.error('   4. Ensure Site URL includes http://localhost:5173 in Auth settings')
+  console.error('   5. Restart your development server')
   
   isUsingMockClient = true
   
@@ -47,18 +45,17 @@ const createMockClient = (reason: string) => {
       signUp: () => Promise.resolve({ 
         data: { user: null, session: null }, 
         error: { 
-          message: '🚨 SUPABASE CONNECTION FAILED\n\nYour Supabase project appears to be paused, deleted, or misconfigured.\n\nPlease check:\n1. Project status at https://supabase.com\n2. Environment variables in .env file\n3. See SUPABASE_CONNECTION_FIX.md for help' 
+          message: '🚨 SUPABASE CONNECTION FAILED\n\nPlease check your environment variables:\n1. Go to https://supabase.com → Settings → API\n2. Copy the correct Project URL and anon key\n3. Update your .env file\n4. Restart the development server' 
         } 
       }),
       signInWithPassword: () => Promise.resolve({ 
         data: { user: null, session: null }, 
         error: { 
-          message: '🚨 SUPABASE CONNECTION FAILED\n\nYour Supabase project appears to be paused, deleted, or misconfigured.\n\nPlease check:\n1. Project status at https://supabase.com\n2. Environment variables in .env file\n3. See SUPABASE_CONNECTION_FIX.md for help' 
+          message: '🚨 SUPABASE CONNECTION FAILED\n\nPlease check your environment variables:\n1. Go to https://supabase.com → Settings → API\n2. Copy the correct Project URL and anon key\n3. Update your .env file\n4. Restart the development server' 
         } 
       }),
       signOut: () => Promise.resolve({ error: null }),
       onAuthStateChange: (callback: any) => {
-        // Call callback immediately with no session
         setTimeout(() => callback('SIGNED_OUT', null), 100)
         return { data: { subscription: { unsubscribe: () => {} } } }
       }
@@ -70,7 +67,7 @@ const createMockClient = (reason: string) => {
             data: null, 
             error: { 
               code: 'SUPABASE_CONNECTION_FAILED', 
-              message: '🚨 Cannot connect to Supabase database.\n\nThis usually means:\n• Your Supabase project is PAUSED or DELETED\n• Wrong project URL or API key\n• Network connectivity issues\n\nCheck https://supabase.com for your project status.' 
+              message: '🚨 Cannot connect to Supabase database.\n\nPlease verify:\n• Environment variables are correct\n• Project URL and API key match your Supabase dashboard\n• Site URL includes http://localhost:5173 in Auth settings\n• Development server was restarted after .env changes' 
             } 
           }),
           limit: () => ({
@@ -88,14 +85,14 @@ const createMockClient = (reason: string) => {
       }),
       insert: () => Promise.resolve({ 
         data: null, 
-        error: { message: '🚨 Database connection failed. Check your Supabase project status.' } 
+        error: { message: '🚨 Database connection failed. Check your environment variables and Supabase settings.' } 
       }),
       update: () => ({
         eq: () => ({
           select: () => ({
             single: () => Promise.resolve({ 
               data: null, 
-              error: { message: '🚨 Database connection failed. Check your Supabase project status.' } 
+              error: { message: '🚨 Database connection failed. Check your environment variables and Supabase settings.' } 
             })
           })
         })
@@ -104,22 +101,22 @@ const createMockClient = (reason: string) => {
         select: () => ({
           single: () => Promise.resolve({ 
             data: null, 
-            error: { message: '🚨 Database connection failed. Check your Supabase project status.' } 
-          })
+            error: { message: '🚨 Database connection failed. Check your environment variables and Supabase settings.' } 
+            })
         })
       })
     })
   }
 }
 
-// Enhanced connection testing
+// Enhanced connection testing with better error handling
 const testSupabaseConnection = async (client: any): Promise<boolean> => {
   try {
     console.log('🔍 Testing Supabase connection...')
     
-    // Create a promise that rejects after 3 seconds (faster timeout)
+    // Create a promise that rejects after 5 seconds
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Connection timeout after 3 seconds')), 3000)
+      setTimeout(() => reject(new Error('Connection timeout after 5 seconds')), 5000)
     })
     
     // Test basic connectivity with timeout
@@ -131,6 +128,8 @@ const testSupabaseConnection = async (client: any): Promise<boolean> => {
     const { data, error } = await Promise.race([connectionPromise, timeoutPromise])
     
     if (error) {
+      console.log('Connection test error details:', error)
+      
       if (error.code === 'PGRST116') {
         console.log('✅ Supabase connection successful - database is ready')
         return true
@@ -138,11 +137,12 @@ const testSupabaseConnection = async (client: any): Promise<boolean> => {
         console.warn('⚠️ DATABASE SETUP REQUIRED: Tables do not exist.')
         console.warn('📋 Run the database migration from supabase/migrations/')
         return true // Connection works, just needs setup
-      } else if (error.code === 'PGRST002' || error.message.includes('Could not query the database')) {
-        console.error('❌ Database connection failed - Supabase project may be inactive')
+      } else if (error.message.includes('JWT') || error.message.includes('Invalid API key')) {
+        console.error('❌ Invalid API key - check your VITE_SUPABASE_ANON_KEY')
         return false
       } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         console.error('❌ Network error - Cannot reach Supabase servers')
+        console.error('   Check if your VITE_SUPABASE_URL is correct')
         return false
       } else {
         console.error('❌ Database error:', error.message)
@@ -154,26 +154,24 @@ const testSupabaseConnection = async (client: any): Promise<boolean> => {
     }
   } catch (error) {
     if (error instanceof Error) {
+      console.error('Connection test failed:', error.message)
+      
       if (error.message.includes('Failed to fetch') || 
           error.message.includes('Connection timeout') ||
-          error.message.includes('upstream connect error') ||
-          error.message.includes('503') ||
           error.message.includes('NetworkError') ||
           error.message.includes('fetch')) {
-        console.error('❌ SUPABASE PROJECT ISSUE DETECTED')
-        console.error('🔧 This usually means:')
-        console.error('   • Your Supabase project is PAUSED or DELETED')
-        console.error('   • The project URL is incorrect')
+        console.error('❌ CONNECTION ISSUE DETECTED')
+        console.error('🔧 Common causes:')
+        console.error('   • Incorrect VITE_SUPABASE_URL in .env file')
+        console.error('   • Invalid VITE_SUPABASE_ANON_KEY in .env file')
         console.error('   • Network connectivity issues')
-        console.error('📋 To fix this:')
-        console.error('   1. Go to https://supabase.com and check your project status')
-        console.error('   2. If PAUSED → Click "Resume" button')
-        console.error('   3. If DELETED → Create a new project and update .env')
-        console.error('   4. Restart your development server')
+        console.error('   • Supabase project settings misconfigured')
+        console.error('📋 To fix:')
+        console.error('   1. Verify credentials at https://supabase.com → Settings → API')
+        console.error('   2. Update .env file with correct values')
+        console.error('   3. Add http://localhost:5173 to Auth Site URLs')
+        console.error('   4. Restart development server')
         
-        return false
-      } else {
-        console.warn('⚠️ Supabase connection test failed:', error.message)
         return false
       }
     }
@@ -194,7 +192,7 @@ if (hasPlaceholderValues) {
 
   if (!isUsingMockClient) {
     try {
-      // Create the real client with enhanced error handling
+      // Create the real client with enhanced configuration
       const realClient = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
@@ -210,75 +208,30 @@ if (hasPlaceholderValues) {
             eventsPerSecond: 2,
           },
         },
-      })
-
-      // Test connection immediately and switch to mock if it fails
-      testSupabaseConnection(realClient).then((success) => {
-        if (!success) {
-          console.error('🚨 CRITICAL: Supabase connection failed - your project may be paused or deleted')
-          console.error('📋 IMMEDIATE ACTION: Check https://supabase.com for your project status')
-          // The mock client will handle subsequent requests gracefully
-        }
-      }).catch(() => {
-        console.error('🚨 CRITICAL: Supabase connection test failed')
-      })
-
-      // Wrap the client to catch runtime fetch errors
-      supabase = new Proxy(realClient, {
-        get(target, prop) {
-          const value = target[prop]
-          
-          // Intercept auth methods to catch connection errors
-          if (prop === 'auth') {
-            return new Proxy(value, {
-              get(authTarget, authProp) {
-                const authValue = authTarget[authProp]
-                
-                if (typeof authValue === 'function') {
-                  return async (...args: any[]) => {
-                    try {
-                      return await authValue.apply(authTarget, args)
-                    } catch (error) {
-                      if (error instanceof Error && 
-                          (error.message.includes('Failed to fetch') || 
-                           error.message.includes('NetworkError') ||
-                           error.message.includes('fetch'))) {
-                        console.error('🚨 Auth request failed - Supabase connection issue')
-                        console.error('📋 Check your Supabase project status at https://supabase.com')
-                        
-                        // Handle onAuthStateChange specifically
-                        if (authProp === 'onAuthStateChange') {
-                          const callback = args[0]
-                          if (typeof callback === 'function') {
-                            setTimeout(() => callback('SIGNED_OUT', null), 100)
-                          }
-                          return { data: { subscription: { unsubscribe: () => {} } } }
-                        }
-                        
-                        // Return mock response for other auth failures
-                        if (authProp === 'getUser' || authProp === 'getSession') {
-                          return { data: { user: null, session: null }, error: null }
-                        }
-                        return { 
-                          data: { user: null, session: null }, 
-                          error: { 
-                            message: '🚨 SUPABASE CONNECTION FAILED\n\nYour Supabase project appears to be paused or deleted.\nCheck https://supabase.com for your project status.' 
-                          } 
-                        }
-                      }
-                      throw error
-                    }
-                  }
-                }
-                
-                return authValue
-              }
-            })
+        global: {
+          headers: {
+            'X-Client-Info': 'supabase-js-web'
           }
-          
-          return value
         }
       })
+
+      // Test connection and provide detailed feedback
+      testSupabaseConnection(realClient).then((success) => {
+        if (success) {
+          console.log('✅ Supabase connection established successfully')
+        } else {
+          console.error('🚨 CRITICAL: Supabase connection failed')
+          console.error('📋 NEXT STEPS:')
+          console.error('   1. Check your .env file values')
+          console.error('   2. Verify credentials in Supabase dashboard')
+          console.error('   3. Ensure Auth settings include localhost:5173')
+          console.error('   4. Restart your development server')
+        }
+      }).catch((error) => {
+        console.error('🚨 Connection test error:', error.message)
+      })
+
+      supabase = realClient
 
     } catch (error) {
       console.error('❌ Failed to create Supabase client:', error)
