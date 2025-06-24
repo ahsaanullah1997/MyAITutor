@@ -58,8 +58,8 @@ export const LoginPage = (): JSX.Element => {
         password: formData.password,
       });
       
-      // Redirect to dashboard immediately - don't wait for profile load
-      window.location.href = '/dashboard';
+      // Don't redirect immediately - let the AuthContext handle the redirect
+      // based on user profile completion status
     } catch (error: any) {
       setError(error.message || 'An error occurred during sign in');
       setLoading(false);

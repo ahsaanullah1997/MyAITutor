@@ -142,6 +142,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('isNewUser')
   }
 
+  // Helper function to handle post-authentication redirect
+  const handlePostAuthRedirect = (user: User, profile: UserProfile | null) => {
+    // Check if user needs to complete profile
+    if (!profile || !profile.first_name || !profile.last_name || !profile.grade) {
+      console.log('User needs to complete profile, redirecting to complete-profile')
+      window.location.href = '/complete-profile'
+    } else {
+      console.log('User profile is complete, redirecting to dashboard')
+      window.location.href = '/dashboard'
+    }
+  }
+
   useEffect(() => {
     let mounted = true
     let subscription: any = null
@@ -229,7 +241,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setIsNewUser(isNewUserFlag)
             
             // Load profile and progress asynchronously
-            loadUserProfile(session.user.id).catch(console.error)
+            try {
+              const userProfile = await AuthService.getUserProfile(session.user.id)
+              setProfile(userProfile)
+              
+              // Handle redirect after successful sign in (but not for initial page load)
+              if (event === 'SIGNED_IN' && window.location.pathname === '/login') {
+                handlePostAuthRedirect(session.user, userProfile)
+              }
+            } catch (error) {
+              console.error('Error loading profile after auth change:', error)
+              setProfile(null)
+              
+              // If this was a sign in event and we're on login page, still redirect
+              if (event === 'SIGNED_IN' && window.location.pathname === '/login') {
+                handlePostAuthRedirect(session.user, null)
+              }
+            }
+            
             loadUserProgress(session.user.id).catch(console.error)
           } else {
             setProfile(null)
@@ -304,6 +333,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await AuthService.signIn(data)
       // Don't set loading to false here - let auth state change handle it
+      // Don't redirect here - let the auth state change handler handle the redirect
     } catch (error) {
       setLoading(false)
       const errorMessage = error instanceof Error ? error.message : 'Sign in failed'
