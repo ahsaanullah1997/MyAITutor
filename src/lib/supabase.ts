@@ -94,7 +94,6 @@ const createMockClient = (reason: string) => {
           single: () => Promise.resolve({ 
             data: null, 
             error: { message: '⚠️ Supabase not configured. Please update your .env file with valid credentials.' } 
-            })
           })
         })
       })
