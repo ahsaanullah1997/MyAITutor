@@ -233,7 +233,18 @@ if (hasPlaceholderValues) {
                            error.message.includes('NetworkError') ||
                            error.message.includes('fetch'))) {
                         console.error('🔄 Auth request failed - Supabase connection issue')
-                        // Return mock response for auth failures
+                        
+                        // Handle onAuthStateChange specifically
+                        if (authProp === 'onAuthStateChange') {
+                          // Call the callback immediately with signed out state
+                          const callback = args[0]
+                          if (typeof callback === 'function') {
+                            setTimeout(() => callback('SIGNED_OUT', null), 100)
+                          }
+                          return { data: { subscription: { unsubscribe: () => {} } } }
+                        }
+                        
+                        // Return mock response for other auth failures
                         if (authProp === 'getUser' || authProp === 'getSession') {
                           return { data: { user: null, session: null }, error: null }
                         }
@@ -254,7 +265,7 @@ if (hasPlaceholderValues) {
           
           return value
         }
-      })
+      }); // Added missing semicolon here
 
     } catch (error) {
       console.error('❌ Failed to create Supabase client:', error)
