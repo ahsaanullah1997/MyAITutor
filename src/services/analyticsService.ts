@@ -35,51 +35,97 @@ export class AnalyticsService {
       const oneWeekAgo = new Date()
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
       
-      // Get sessions from the last week
-      const { data: sessions, error } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('session_date', oneWeekAgo.toISOString().split('T')[0])
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      // Get current progress stats
-      const { data: progressStats } = await supabase
-        .from('user_progress_stats')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      const totalStudyTime = sessions?.reduce((sum, session) => sum + session.duration_minutes, 0) || 0
-      const sessionsCompleted = sessions?.length || 0
-      const averageSessionLength = sessionsCompleted > 0 ? Math.round(totalStudyTime / sessionsCompleted) : 0
-
-      // Find most studied subject
-      const subjectTimes: { [key: string]: number } = {}
-      sessions?.forEach(session => {
-        subjectTimes[session.subject] = (subjectTimes[session.subject] || 0) + session.duration_minutes
-      })
+      // Get sessions from the last week with timeout and error handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
       
-      const mostStudiedSubject = Object.keys(subjectTimes).reduce((a, b) => 
-        subjectTimes[a] > subjectTimes[b] ? a : b, 'None'
-      )
+      try {
+        const { data: sessions, error } = await supabase
+          .from('study_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('session_date', oneWeekAgo.toISOString().split('T')[0])
+          .order('created_at', { ascending: false })
+          .abortSignal(controller.signal)
 
-      // Calculate weekly goal progress (assuming 300 minutes per week goal)
-      const weeklyGoal = 300
-      const weeklyGoalProgress = Math.min((totalStudyTime / weeklyGoal) * 100, 100)
+        clearTimeout(timeoutId)
 
-      return {
-        totalStudyTime,
-        sessionsCompleted,
-        averageSessionLength,
-        mostStudiedSubject,
-        weeklyGoalProgress,
-        streakDays: progressStats?.study_streak_days || 0
+        if (error) {
+          console.error('Database error in getWeeklyAnalytics:', error)
+          
+          // Handle specific database errors
+          if (error.message.includes('Failed to fetch') || 
+              error.message.includes('NetworkError') ||
+              error.message.includes('Connection timeout')) {
+            throw new Error('Unable to connect to the database. Please check your internet connection and Supabase project status.')
+          }
+          
+          if (error.message.includes('relation "study_sessions" does not exist')) {
+            throw new Error('Database tables not found. Please run the database migration.')
+          }
+          
+          throw error
+        }
+
+        // Get current progress stats with error handling
+        const { data: progressStats, error: progressError } = await supabase
+          .from('user_progress_stats')
+          .select('*')
+          .eq('user_id', userId)
+          .single()
+
+        // Don't throw error for missing progress stats, just use defaults
+        if (progressError && !progressError.message.includes('No rows found')) {
+          console.warn('Could not fetch progress stats:', progressError)
+        }
+
+        const totalStudyTime = sessions?.reduce((sum, session) => sum + session.duration_minutes, 0) || 0
+        const sessionsCompleted = sessions?.length || 0
+        const averageSessionLength = sessionsCompleted > 0 ? Math.round(totalStudyTime / sessionsCompleted) : 0
+
+        // Find most studied subject
+        const subjectTimes: { [key: string]: number } = {}
+        sessions?.forEach(session => {
+          subjectTimes[session.subject] = (subjectTimes[session.subject] || 0) + session.duration_minutes
+        })
+        
+        const mostStudiedSubject = Object.keys(subjectTimes).length > 0 ? 
+          Object.keys(subjectTimes).reduce((a, b) => 
+            subjectTimes[a] > subjectTimes[b] ? a : b
+          ) : 'None'
+
+        // Calculate weekly goal progress (assuming 300 minutes per week goal)
+        const weeklyGoal = 300
+        const weeklyGoalProgress = Math.min((totalStudyTime / weeklyGoal) * 100, 100)
+
+        return {
+          totalStudyTime,
+          sessionsCompleted,
+          averageSessionLength,
+          mostStudiedSubject,
+          weeklyGoalProgress,
+          streakDays: progressStats?.study_streak_days || 0
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        
+        if (fetchError instanceof Error) {
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Database request timed out. Please check your internet connection and Supabase project status.')
+          }
+          
+          if (fetchError.message.includes('Failed to fetch') || 
+              fetchError.message.includes('NetworkError')) {
+            throw new Error('Unable to connect to the database. Please verify your Supabase project is active and accessible.')
+          }
+        }
+        
+        throw fetchError
       }
     } catch (error) {
       console.error('Error fetching weekly analytics:', error)
+      
+      // Return default values instead of throwing to prevent UI crashes
       return {
         totalStudyTime: 0,
         sessionsCompleted: 0,
@@ -97,62 +143,78 @@ export class AnalyticsService {
       const oneMonthAgo = new Date()
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 
-      // Get sessions from the last month
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('session_date', oneMonthAgo.toISOString().split('T')[0])
+      // Get sessions from the last month with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-      if (sessionsError) throw sessionsError
+      try {
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('study_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('session_date', oneMonthAgo.toISOString().split('T')[0])
+          .abortSignal(controller.signal)
 
-      // Get subject progress
-      const { data: subjectProgress, error: subjectError } = await supabase
-        .from('subject_progress')
-        .select('*')
-        .eq('user_id', userId)
+        clearTimeout(timeoutId)
 
-      if (subjectError) throw subjectError
+        if (sessionsError) {
+          console.error('Database error in getMonthlyAnalytics:', sessionsError)
+          throw sessionsError
+        }
 
-      const totalStudyTime = sessions?.reduce((sum, session) => sum + session.duration_minutes, 0) || 0
-      const lessonsCompleted = sessions?.filter(s => s.session_type === 'lesson').length || 0
-      const testsCompleted = sessions?.filter(s => s.session_type === 'test').length || 0
-      
-      const testScores = sessions?.filter(s => s.session_type === 'test' && s.score !== null).map(s => s.score!) || []
-      const averageTestScore = testScores.length > 0 ? 
-        Math.round(testScores.reduce((sum, score) => sum + score, 0) / testScores.length) : 0
+        // Get subject progress
+        const { data: subjectProgress, error: subjectError } = await supabase
+          .from('subject_progress')
+          .select('*')
+          .eq('user_id', userId)
 
-      // Subject breakdown
-      const subjectTimes: { [key: string]: number } = {}
-      sessions?.forEach(session => {
-        subjectTimes[session.subject] = (subjectTimes[session.subject] || 0) + session.duration_minutes
-      })
+        if (subjectError && !subjectError.message.includes('No rows found')) {
+          console.warn('Could not fetch subject progress:', subjectError)
+        }
 
-      const subjectBreakdown = subjectProgress?.map(subject => ({
-        subject: subject.subject_name,
-        time: subjectTimes[subject.subject_name] || 0,
-        progress: subject.progress_percentage
-      })) || []
+        const totalStudyTime = sessions?.reduce((sum, session) => sum + session.duration_minutes, 0) || 0
+        const lessonsCompleted = sessions?.filter(s => s.session_type === 'lesson').length || 0
+        const testsCompleted = sessions?.filter(s => s.session_type === 'test').length || 0
+        
+        const testScores = sessions?.filter(s => s.session_type === 'test' && s.score !== null).map(s => s.score!) || []
+        const averageTestScore = testScores.length > 0 ? 
+          Math.round(testScores.reduce((sum, score) => sum + score, 0) / testScores.length) : 0
 
-      // Identify improvement areas (subjects with low progress)
-      const improvementAreas = subjectProgress?.filter(s => s.progress_percentage < 50)
-        .map(s => s.subject_name) || []
+        // Subject breakdown
+        const subjectTimes: { [key: string]: number } = {}
+        sessions?.forEach(session => {
+          subjectTimes[session.subject] = (subjectTimes[session.subject] || 0) + session.duration_minutes
+        })
 
-      // Generate achievements based on progress
-      const achievements: string[] = []
-      if (testScores.some(score => score >= 90)) achievements.push('High Achiever')
-      if (lessonsCompleted >= 20) achievements.push('Dedicated Learner')
-      if (totalStudyTime >= 1200) achievements.push('Study Champion') // 20+ hours
-      if (subjectProgress?.some(s => s.progress_percentage >= 80)) achievements.push('Subject Master')
+        const subjectBreakdown = subjectProgress?.map(subject => ({
+          subject: subject.subject_name,
+          time: subjectTimes[subject.subject_name] || 0,
+          progress: subject.progress_percentage
+        })) || []
 
-      return {
-        totalStudyTime,
-        lessonsCompleted,
-        testsCompleted,
-        averageTestScore,
-        subjectBreakdown,
-        improvementAreas,
-        achievements
+        // Identify improvement areas (subjects with low progress)
+        const improvementAreas = subjectProgress?.filter(s => s.progress_percentage < 50)
+          .map(s => s.subject_name) || []
+
+        // Generate achievements based on progress
+        const achievements: string[] = []
+        if (testScores.some(score => score >= 90)) achievements.push('High Achiever')
+        if (lessonsCompleted >= 20) achievements.push('Dedicated Learner')
+        if (totalStudyTime >= 1200) achievements.push('Study Champion') // 20+ hours
+        if (subjectProgress?.some(s => s.progress_percentage >= 80)) achievements.push('Subject Master')
+
+        return {
+          totalStudyTime,
+          lessonsCompleted,
+          testsCompleted,
+          averageTestScore,
+          subjectBreakdown,
+          improvementAreas,
+          achievements
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        throw fetchError
       }
     } catch (error) {
       console.error('Error fetching monthly analytics:', error)
@@ -171,90 +233,107 @@ export class AnalyticsService {
   // Generate learning insights and recommendations
   static async getLearningInsights(userId: string): Promise<LearningInsights> {
     try {
-      // Get all sessions to analyze patterns
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(100) // Last 100 sessions
+      // Get all sessions to analyze patterns with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-      if (sessionsError) throw sessionsError
+      try {
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('study_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(100) // Last 100 sessions
+          .abortSignal(controller.signal)
 
-      // Get subject progress
-      const { data: subjectProgress, error: subjectError } = await supabase
-        .from('subject_progress')
-        .select('*')
-        .eq('user_id', userId)
+        clearTimeout(timeoutId)
 
-      if (subjectError) throw subjectError
+        if (sessionsError) {
+          console.error('Database error in getLearningInsights:', sessionsError)
+          throw sessionsError
+        }
 
-      // Analyze preferred study time
-      const hourCounts: { [key: number]: number } = {}
-      sessions?.forEach(session => {
-        const hour = new Date(session.created_at).getHours()
-        hourCounts[hour] = (hourCounts[hour] || 0) + 1
-      })
+        // Get subject progress
+        const { data: subjectProgress, error: subjectError } = await supabase
+          .from('subject_progress')
+          .select('*')
+          .eq('user_id', userId)
 
-      const preferredHour = Object.keys(hourCounts).reduce((a, b) => 
-        hourCounts[parseInt(a)] > hourCounts[parseInt(b)] ? a : b, '9'
-      )
+        if (subjectError && !subjectError.message.includes('No rows found')) {
+          console.warn('Could not fetch subject progress for insights:', subjectError)
+        }
 
-      const preferredStudyTime = this.getTimeOfDayLabel(parseInt(preferredHour))
+        // Analyze preferred study time
+        const hourCounts: { [key: number]: number } = {}
+        sessions?.forEach(session => {
+          const hour = new Date(session.created_at).getHours()
+          hourCounts[hour] = (hourCounts[hour] || 0) + 1
+        })
 
-      // Identify strong and weak subjects
-      const strongSubjects = subjectProgress?.filter(s => s.progress_percentage >= 70)
-        .map(s => s.subject_name) || []
-      
-      const weakSubjects = subjectProgress?.filter(s => s.progress_percentage < 50)
-        .map(s => s.subject_name) || []
+        const preferredHour = Object.keys(hourCounts).length > 0 ? 
+          Object.keys(hourCounts).reduce((a, b) => 
+            hourCounts[parseInt(a)] > hourCounts[parseInt(b)] ? a : b
+          ) : '9'
 
-      // Analyze study patterns
-      const studyPatterns: string[] = []
-      const avgSessionLength = sessions?.length ? 
-        sessions.reduce((sum, s) => sum + s.duration_minutes, 0) / sessions.length : 0
+        const preferredStudyTime = this.getTimeOfDayLabel(parseInt(preferredHour))
 
-      if (avgSessionLength > 45) studyPatterns.push('Long study sessions')
-      else if (avgSessionLength < 20) studyPatterns.push('Short, frequent sessions')
-      else studyPatterns.push('Moderate session length')
+        // Identify strong and weak subjects
+        const strongSubjects = subjectProgress?.filter(s => s.progress_percentage >= 70)
+          .map(s => s.subject_name) || []
+        
+        const weakSubjects = subjectProgress?.filter(s => s.progress_percentage < 50)
+          .map(s => s.subject_name) || []
 
-      // Check for consistency
-      const recentSessions = sessions?.slice(0, 14) || [] // Last 14 sessions
-      const uniqueDays = new Set(recentSessions.map(s => s.session_date)).size
-      if (uniqueDays >= 10) studyPatterns.push('Consistent daily study')
-      else if (uniqueDays >= 5) studyPatterns.push('Regular study schedule')
+        // Analyze study patterns
+        const studyPatterns: string[] = []
+        const avgSessionLength = sessions?.length ? 
+          sessions.reduce((sum, s) => sum + s.duration_minutes, 0) / sessions.length : 0
 
-      // Generate recommendations
-      const recommendations: string[] = []
-      
-      if (weakSubjects.length > 0) {
-        recommendations.push(`Focus more time on ${weakSubjects.slice(0, 2).join(' and ')}`)
-      }
-      
-      if (avgSessionLength < 20) {
-        recommendations.push('Try longer study sessions for better retention')
-      }
-      
-      if (uniqueDays < 5) {
-        recommendations.push('Aim for more consistent daily study habits')
-      }
-      
-      const testSessions = sessions?.filter(s => s.session_type === 'test') || []
-      if (testSessions.length < 5) {
-        recommendations.push('Take more practice tests to assess your knowledge')
-      }
+        if (avgSessionLength > 45) studyPatterns.push('Long study sessions')
+        else if (avgSessionLength < 20) studyPatterns.push('Short, frequent sessions')
+        else studyPatterns.push('Moderate session length')
 
-      const aiSessions = sessions?.filter(s => s.session_type === 'ai_tutor') || []
-      if (aiSessions.length < 3) {
-        recommendations.push('Use the AI tutor more often for personalized help')
-      }
+        // Check for consistency
+        const recentSessions = sessions?.slice(0, 14) || [] // Last 14 sessions
+        const uniqueDays = new Set(recentSessions.map(s => s.session_date)).size
+        if (uniqueDays >= 10) studyPatterns.push('Consistent daily study')
+        else if (uniqueDays >= 5) studyPatterns.push('Regular study schedule')
 
-      return {
-        preferredStudyTime,
-        strongSubjects,
-        weakSubjects,
-        studyPatterns,
-        recommendations
+        // Generate recommendations
+        const recommendations: string[] = []
+        
+        if (weakSubjects.length > 0) {
+          recommendations.push(`Focus more time on ${weakSubjects.slice(0, 2).join(' and ')}`)
+        }
+        
+        if (avgSessionLength < 20) {
+          recommendations.push('Try longer study sessions for better retention')
+        }
+        
+        if (uniqueDays < 5) {
+          recommendations.push('Aim for more consistent daily study habits')
+        }
+        
+        const testSessions = sessions?.filter(s => s.session_type === 'test') || []
+        if (testSessions.length < 5) {
+          recommendations.push('Take more practice tests to assess your knowledge')
+        }
+
+        const aiSessions = sessions?.filter(s => s.session_type === 'ai_tutor') || []
+        if (aiSessions.length < 3) {
+          recommendations.push('Use the AI tutor more often for personalized help')
+        }
+
+        return {
+          preferredStudyTime,
+          strongSubjects,
+          weakSubjects,
+          studyPatterns,
+          recommendations
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        throw fetchError
       }
     } catch (error) {
       console.error('Error generating learning insights:', error)
