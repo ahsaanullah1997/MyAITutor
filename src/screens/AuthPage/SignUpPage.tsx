@@ -16,6 +16,7 @@ export const SignUpPage = (): JSX.Element => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showExistingUserAction, setShowExistingUserAction] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -27,12 +28,14 @@ export const SignUpPage = (): JSX.Element => {
     // Clear error when user starts typing
     if (error) {
       setError(null);
+      setShowExistingUserAction(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShowExistingUserAction(false);
 
     // Enhanced validation
     if (!formData.firstName.trim()) {
@@ -93,10 +96,20 @@ export const SignUpPage = (): JSX.Element => {
       // Redirect to profile completion page
       window.location.href = '/complete-profile';
     } catch (error: any) {
-      setError(error.message || 'An error occurred during sign up');
+      const errorMessage = error.message || 'An error occurred during sign up';
+      setError(errorMessage);
+      
+      // Check if the error is about an existing user
+      if (errorMessage.includes('already exists') || errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
+        setShowExistingUserAction(true);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoToLogin = () => {
+    window.location.href = '/login';
   };
 
   return (
@@ -122,9 +135,18 @@ export const SignUpPage = (): JSX.Element => {
                 {/* Error Message */}
                 {error && (
                   <div className="p-3 md:p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-400 text-xs md:text-sm [font-family:'Lexend',Helvetica]">
+                    <p className="text-red-400 text-xs md:text-sm [font-family:'Lexend',Helvetica] mb-3">
                       {error}
                     </p>
+                    {showExistingUserAction && (
+                      <Button
+                        type="button"
+                        onClick={handleGoToLogin}
+                        className="w-full h-8 md:h-10 bg-red-500 hover:bg-red-600 rounded-lg [font-family:'Lexend',Helvetica] font-medium text-white transition-colors text-xs md:text-sm"
+                      >
+                        Go to Sign In Page
+                      </Button>
+                    )}
                   </div>
                 )}
 
