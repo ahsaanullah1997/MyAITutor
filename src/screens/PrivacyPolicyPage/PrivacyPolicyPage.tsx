@@ -82,17 +82,17 @@ export const PrivacyPolicyPage = (): JSX.Element => {
   ];
 
   return (
-    <main className="flex flex-col w-full bg-[#0f1419] min-h-screen">
+    <main className="flex flex-col w-full theme-bg-primary min-h-screen">
       <HeroSection />
       
-      <section className="flex items-start justify-center px-4 md:px-10 lg:px-40 py-20 w-full bg-[#0f1419]">
+      <section className="flex items-start justify-center px-4 md:px-10 lg:px-40 py-20 w-full theme-bg-primary">
         <div className="flex flex-col max-w-[960px] w-full">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <h1 className="[font-family:'Lexend',Helvetica] font-black text-white text-4xl md:text-5xl lg:text-6xl tracking-[-2.00px] leading-[1.1] mb-6">
+            <h1 className="[font-family:'Lexend',Helvetica] font-black theme-text-primary text-4xl md:text-5xl lg:text-6xl tracking-[-2.00px] leading-[1.1] mb-6">
               Privacy Policy
             </h1>
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-lg tracking-[0] leading-7 max-w-[600px] mx-auto mb-4">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-lg tracking-[0] leading-7 max-w-[600px] mx-auto mb-4">
               Your privacy is important to us. This policy explains how we collect, use, and protect your information.
             </p>
             <p className="[font-family:'Lexend',Helvetica] font-medium text-[#3f8cbf] text-sm">
@@ -101,8 +101,8 @@ export const PrivacyPolicyPage = (): JSX.Element => {
           </div>
 
           {/* Introduction */}
-          <div className="mb-12 p-6 bg-[#1e282d] rounded-xl border border-[#3d4f5b]">
-            <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base leading-7">
+          <div className="mb-12 p-6 theme-bg-secondary rounded-xl theme-border border">
+            <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-base leading-7">
               At EduGenius, we are committed to protecting your privacy and ensuring the security of your personal information. 
               This Privacy Policy describes how we collect, use, disclose, and safeguard your information when you use our 
               AI-powered educational platform and services.
@@ -113,14 +113,14 @@ export const PrivacyPolicyPage = (): JSX.Element => {
           <div className="flex flex-col gap-8">
             {sections.map((section, index) => (
               <div key={index} className="flex flex-col gap-4">
-                <h2 className="[font-family:'Lexend',Helvetica] font-bold text-white text-2xl tracking-[-0.5px] leading-8">
+                <h2 className="[font-family:'Lexend',Helvetica] font-bold theme-text-primary text-2xl tracking-[-0.5px] leading-8">
                   {index + 1}. {section.title}
                 </h2>
                 <div className="flex flex-col gap-3">
                   {section.content.map((item, itemIndex) => (
                     <div key={itemIndex} className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-[#3f8cbf] rounded-full mt-2 flex-shrink-0" />
-                      <p className="[font-family:'Lexend',Helvetica] font-normal text-[#9eafbf] text-base leading-7">
+                      <p className="[font-family:'Lexend',Helvetica] font-normal theme-text-secondary text-base leading-7">
                         {item}
                       </p>
                     </div>
