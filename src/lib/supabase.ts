@@ -202,7 +202,7 @@ if (hasPlaceholderValues) {
         }
       }
 
-      // Create a proxy to handle connection failures gracefully
+      // Create a proxy to handle auth connection failures gracefully
       supabase = new Proxy(realClient, {
         get(target, prop) {
           const value = target[prop]
@@ -253,46 +253,7 @@ if (hasPlaceholderValues) {
             })
           }
           
-          // Intercept database methods
-          if (prop === 'from') {
-            return (...args: any[]) => {
-              const table = value.apply(target, args)
-              
-              return new Proxy(table, {
-                get(tableTarget, tableProp) {
-                  const tableValue = tableTarget[tableProp]
-                  
-                  if (typeof tableValue === 'function') {
-                    return (...tableArgs: any[]) => {
-                      const result = tableValue.apply(tableTarget, tableArgs)
-                      
-                      // If the result is a promise-like object, wrap it
-                      if (result && typeof result.then === 'function') {
-                        return result.catch((error: any) => {
-                          if (error instanceof Error && 
-                              (error.message.includes('Failed to fetch') || 
-                               error.message.includes('NetworkError') ||
-                               error.name === 'AbortError')) {
-                            console.error('🔄 Database request failed - Supabase connection issue')
-                            return { 
-                              data: null, 
-                              error: { message: '⚠️ Unable to connect to database. Please check your Supabase project status.' } 
-                            }
-                          }
-                          throw error
-                        })
-                      }
-                      
-                      return result
-                    }
-                  }
-                  
-                  return tableValue
-                }
-              })
-            }
-          }
-          
+          // Return the original value for database operations - let native error handling work
           return value
         }
       })
