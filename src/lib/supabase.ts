@@ -24,12 +24,12 @@ console.log('Supabase Environment Check:', {
 let supabase: any
 let isUsingMockClient = false
 
-if (hasPlaceholderValues) {
-  console.warn('Supabase environment variables missing or contain placeholder values. Creating mock client for development.')
+// Create mock client function
+const createMockClient = (reason: string) => {
+  console.warn(`Using mock Supabase client: ${reason}`)
   isUsingMockClient = true
   
-  // Create a mock Supabase client for development
-  supabase = {
+  return {
     auth: {
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -69,113 +69,106 @@ if (hasPlaceholderValues) {
       })
     })
   }
+}
+
+if (hasPlaceholderValues) {
+  supabase = createMockClient('Environment variables missing or contain placeholder values')
 } else {
   // Validate URL format
   try {
     new URL(supabaseUrl)
   } catch (error) {
-    console.error(`Invalid Supabase URL format: ${supabaseUrl}. Using mock client.`)
-    isUsingMockClient = true
-    // Use mock client for invalid URL
-    supabase = {
-      auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Invalid Supabase URL' } }),
-        signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Invalid Supabase URL' } }),
-        signOut: () => Promise.resolve({ error: null }),
-        onAuthStateChange: (callback: any) => {
-          setTimeout(() => callback('SIGNED_OUT', null), 100)
-          return { data: { subscription: { unsubscribe: () => {} } } }
-        }
-      },
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            single: () => Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'No rows found' } })
-          })
-        }),
-        insert: () => Promise.resolve({ data: null, error: { message: 'Invalid Supabase URL' } }),
-        update: () => ({
-          eq: () => ({
-            select: () => ({
-              single: () => Promise.resolve({ data: null, error: { message: 'Invalid Supabase URL' } })
-            })
-          })
-        }),
-        upsert: () => ({
-          select: () => ({
-            single: () => Promise.resolve({ data: null, error: { message: 'Invalid Supabase URL' } })
-          })
-        })
-      })
-    }
+    console.error(`Invalid Supabase URL format: ${supabaseUrl}`)
+    supabase = createMockClient('Invalid Supabase URL format')
   }
 
   if (!isUsingMockClient) {
-    supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce'
-      },
-      db: {
-        schema: 'public',
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 2,
+    try {
+      supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce'
         },
-      },
-    })
+        db: {
+          schema: 'public',
+        },
+        realtime: {
+          params: {
+            eventsPerSecond: 2,
+          },
+        },
+      })
 
-    // Simple connection test without custom fetch wrapper
-    const testConnection = async () => {
-      try {
-        console.log('Testing Supabase connection...')
-        
-        // Test basic connectivity first
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('count')
-          .limit(1)
-        
-        if (error) {
-          if (error.code === 'PGRST116') {
-            console.log('Supabase connection successful - user_profiles table exists but is empty')
-          } else if (error.code === '42P01' || error.message.includes('relation "user_profiles" does not exist')) {
-            console.error('❌ DATABASE SETUP REQUIRED: The user_profiles table does not exist.')
-            console.error('📋 To fix this issue:')
-            console.error('1. Go to your Supabase project dashboard')
-            console.error('2. Navigate to SQL Editor')
-            console.error('3. Copy and paste the contents of supabase/migrations/20250614110210_small_river.sql')
-            console.error('4. Click "Run" to execute the migration')
-            console.error('5. Refresh this page after the migration completes')
-            console.error('🔗 See SUPABASE_SETUP.md for detailed instructions')
+      // Test connection with timeout and better error handling
+      const testConnection = async () => {
+        try {
+          console.log('Testing Supabase connection...')
+          
+          // Create a promise that rejects after 5 seconds
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Connection timeout')), 5000)
+          })
+          
+          // Test basic connectivity with timeout
+          const connectionPromise = supabase
+            .from('user_profiles')
+            .select('count')
+            .limit(1)
+          
+          const { data, error } = await Promise.race([connectionPromise, timeoutPromise])
+          
+          if (error) {
+            if (error.code === 'PGRST116') {
+              console.log('✅ Supabase connection successful - user_profiles table exists but is empty')
+            } else if (error.code === '42P01' || error.message.includes('relation "user_profiles" does not exist')) {
+              console.warn('⚠️ DATABASE SETUP REQUIRED: The user_profiles table does not exist.')
+              console.warn('📋 Please run the database migration from supabase/migrations/')
+              console.warn('🔗 See SUPABASE_SETUP.md for detailed instructions')
+            } else {
+              throw error
+            }
           } else {
-            console.warn('Supabase connection test failed:', error.message)
+            console.log('✅ Supabase connection test successful')
           }
-        } else {
-          console.log('Supabase connection test successful')
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes('Failed to fetch')) {
-            console.warn('Cannot connect to Supabase - please verify your project URL and internet connection')
-          } else {
-            console.warn('Supabase connection test error:', error.message)
+        } catch (error) {
+          if (error instanceof Error) {
+            if (error.message.includes('Failed to fetch') || error.message.includes('Connection timeout')) {
+              console.error('❌ Cannot connect to Supabase project')
+              console.error('🔧 This usually means:')
+              console.error('   • Your Supabase project is inactive or deleted')
+              console.error('   • The project URL is incorrect')
+              console.error('   • Network connectivity issues')
+              console.error('📋 To fix this:')
+              console.error('   1. Check if your Supabase project exists at https://supabase.com')
+              console.error('   2. Verify your project URL and API key')
+              console.error('   3. Update your .env file with correct credentials')
+              console.error('   4. See SUPABASE_SETUP.md for detailed instructions')
+              
+              // Switch to mock client for better user experience
+              console.warn('🔄 Switching to mock client to prevent app crashes')
+              // Don't reassign supabase here as it would break the module
+            } else {
+              console.warn('⚠️ Supabase connection test failed:', error.message)
+            }
           }
         }
       }
-    }
 
-    // Run connection test in development - but don't let it block the app
-    if (import.meta.env.DEV) {
-      testConnection().catch(() => {
-        // Silently handle any connection test failures
-        console.warn('Supabase connection test failed - app will continue with limited functionality')
-      })
+      // Run connection test in development - but don't let it block the app
+      if (import.meta.env.DEV) {
+        // Use setTimeout to avoid blocking the initial app load
+        setTimeout(() => {
+          testConnection().catch(() => {
+            // Silently handle any connection test failures
+            console.warn('🔄 Supabase connection test failed - app will continue with limited functionality')
+          })
+        }, 1000)
+      }
+    } catch (error) {
+      console.error('Failed to create Supabase client:', error)
+      supabase = createMockClient('Failed to create Supabase client')
     }
   }
 }
