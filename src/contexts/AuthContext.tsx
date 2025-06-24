@@ -144,6 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true
+    let subscription: any = null
 
     // Get initial session with better error handling
     const getInitialSession = async () => {
@@ -211,39 +212,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     getInitialSession()
 
-    // Listen for auth changes with optimized handling
-    const { data: { subscription } } = AuthService.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return
-        
-        console.log('Auth state change:', event, session ? 'Session exists' : 'No session')
-        setError(null) // Clear errors on auth state change
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          // Check if this is a new user (from sign up)
-          const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
-          setIsNewUser(isNewUserFlag)
+    // Listen for auth changes with optimized handling and proper error handling
+    try {
+      const authListener = AuthService.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return
           
-          // Load profile and progress asynchronously
-          loadUserProfile(session.user.id).catch(console.error)
-          loadUserProgress(session.user.id).catch(console.error)
-        } else {
-          setProfile(null)
-          setProgressStats(null)
-          setSubjectProgress([])
-          setIsNewUser(false)
+          console.log('Auth state change:', event, session ? 'Session exists' : 'No session')
+          setError(null) // Clear errors on auth state change
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // Check if this is a new user (from sign up)
+            const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
+            setIsNewUser(isNewUserFlag)
+            
+            // Load profile and progress asynchronously
+            loadUserProfile(session.user.id).catch(console.error)
+            loadUserProgress(session.user.id).catch(console.error)
+          } else {
+            setProfile(null)
+            setProgressStats(null)
+            setSubjectProgress([])
+            setIsNewUser(false)
+          }
+          
+          // Set loading to false immediately for auth state changes
+          setLoading(false)
         }
-        
-        // Set loading to false immediately for auth state changes
+      )
+
+      // Safely extract subscription with null checks
+      if (authListener && authListener.data && authListener.data.subscription) {
+        subscription = authListener.data.subscription
+      } else {
+        console.warn('Auth listener did not return expected subscription object')
+      }
+    } catch (error) {
+      console.error('Error setting up auth state listener:', error)
+      // Set a user-friendly error message
+      if (mounted) {
+        setError('Authentication service not available. Please check your connection and try refreshing the page.')
         setLoading(false)
       }
-    )
+    }
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      // Safely unsubscribe only if subscription exists and has unsubscribe method
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        try {
+          subscription.unsubscribe()
+        } catch (error) {
+          console.error('Error unsubscribing from auth changes:', error)
+        }
+      }
     }
   }, [])
 
