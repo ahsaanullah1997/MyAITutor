@@ -1,126 +1,159 @@
-import { createClient } from '@supabase/supabase-js'
+// Mock Supabase client for offline development
+console.log('🔄 Running in OFFLINE MODE - Supabase disconnected')
+console.log('📝 To reconnect: Update .env with new Supabase credentials and restart server')
 
-// Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-
-console.log('🔍 Supabase Configuration Check:')
-console.log('URL:', supabaseUrl ? `${supabaseUrl.substring(0, 50)}...` : '❌ MISSING')
-console.log('Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 30)}...` : '❌ MISSING')
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ CRITICAL: Missing Supabase environment variables')
-  console.error('Please check your .env file and ensure it contains:')
-  console.error('VITE_SUPABASE_URL=https://your-project-id.supabase.co')
-  console.error('VITE_SUPABASE_ANON_KEY=your-anon-key-here')
-}
-
-// Check for placeholder values
-if (supabaseUrl.includes('your-actual-project-id') || supabaseAnonKey.includes('your-actual-anon-key')) {
-  console.error('❌ CRITICAL: You are using placeholder values in your .env file')
-  console.error('Please replace them with your actual Supabase credentials from:')
-  console.error('https://supabase.com → Your Project → Settings → API')
-}
-
-// Validate URL format
-if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
-  console.error('❌ Invalid Supabase URL format. Must start with https://')
-}
-
-// Create Supabase client with enhanced configuration
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  },
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web'
-    }
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 2,
+// Create a mock client that simulates Supabase functionality
+const createMockClient = () => {
+  return {
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signUp: (data: any) => {
+        console.log('🔄 Mock sign up:', data.email)
+        return Promise.resolve({ 
+          data: { 
+            user: { 
+              id: 'mock-user-id', 
+              email: data.email,
+              created_at: new Date().toISOString()
+            }, 
+            session: null 
+          }, 
+          error: null 
+        })
+      },
+      signInWithPassword: (data: any) => {
+        console.log('🔄 Mock sign in:', data.email)
+        return Promise.resolve({ 
+          data: { 
+            user: { 
+              id: 'mock-user-id', 
+              email: data.email,
+              created_at: new Date().toISOString()
+            }, 
+            session: { 
+              user: { 
+                id: 'mock-user-id', 
+                email: data.email 
+              },
+              access_token: 'mock-token'
+            } 
+          }, 
+          error: null 
+        })
+      },
+      signOut: () => {
+        console.log('🔄 Mock sign out')
+        return Promise.resolve({ error: null })
+      },
+      onAuthStateChange: (callback: any) => {
+        console.log('🔄 Mock auth state listener setup')
+        // Call callback immediately with no session
+        setTimeout(() => callback('SIGNED_OUT', null), 100)
+        return { data: { subscription: { unsubscribe: () => {} } } }
+      },
+      resetPasswordForEmail: () => Promise.resolve({ error: null })
     },
+    from: (table: string) => ({
+      select: (columns?: string) => ({
+        eq: (column: string, value: any) => ({
+          single: () => {
+            console.log(`🔄 Mock query: ${table}.select(${columns}).eq(${column}, ${value}).single()`)
+            return Promise.resolve({ 
+              data: null, 
+              error: { 
+                code: 'MOCK_MODE', 
+                message: 'Running in offline mode - no database connection' 
+              } 
+            })
+          },
+          limit: (count: number) => ({
+            abortSignal: (signal: any) => {
+              console.log(`🔄 Mock query: ${table}.select(${columns}).eq(${column}, ${value}).limit(${count})`)
+              return Promise.resolve({ data: [], error: null })
+            }
+          }),
+          order: (column: string, options?: any) => ({
+            limit: (count: number) => ({
+              abortSignal: (signal: any) => {
+                console.log(`🔄 Mock query: ${table}.select().order(${column}).limit(${count})`)
+                return Promise.resolve({ data: [], error: null })
+              }
+            })
+          })
+        }),
+        gte: (column: string, value: any) => ({
+          order: (orderColumn: string, options?: any) => ({
+            abortSignal: (signal: any) => {
+              console.log(`🔄 Mock query: ${table}.select().gte(${column}, ${value}).order(${orderColumn})`)
+              return Promise.resolve({ data: [], error: null })
+            }
+          })
+        }),
+        limit: (count: number) => ({
+          abortSignal: (signal: any) => {
+            console.log(`🔄 Mock query: ${table}.select(${columns}).limit(${count})`)
+            return Promise.resolve({ data: [], error: null })
+          }
+        })
+      }),
+      insert: (data: any) => {
+        console.log(`🔄 Mock insert: ${table}`, data)
+        return Promise.resolve({ 
+          data: { id: 'mock-id', ...data }, 
+          error: null 
+        })
+      },
+      update: (data: any) => ({
+        eq: (column: string, value: any) => ({
+          select: () => ({
+            single: () => {
+              console.log(`🔄 Mock update: ${table}.update().eq(${column}, ${value})`, data)
+              return Promise.resolve({ 
+                data: { id: value, ...data }, 
+                error: null 
+              })
+            }
+          })
+        })
+      }),
+      upsert: (data: any, options?: any) => ({
+        select: () => ({
+          single: () => {
+            console.log(`🔄 Mock upsert: ${table}`, data)
+            return Promise.resolve({ 
+              data: { id: 'mock-id', ...data }, 
+              error: null 
+            })
+          }
+        })
+      })
+    }),
+    storage: {
+      from: (bucket: string) => ({
+        upload: (path: string, file: File) => {
+          console.log(`🔄 Mock storage upload: ${bucket}/${path}`)
+          return Promise.resolve({ 
+            data: { path }, 
+            error: null 
+          })
+        },
+        remove: (paths: string[]) => {
+          console.log(`🔄 Mock storage remove: ${bucket}`, paths)
+          return Promise.resolve({ error: null })
+        },
+        getPublicUrl: (path: string) => ({
+          data: { publicUrl: `https://mock-storage.com/${bucket}/${path}` }
+        })
+      })
+    }
   }
-})
-
-// Test connection on initialization
-if (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-actual-project-id')) {
-  console.log('🔄 Testing Supabase connection...')
-  
-  // Test with a simple query
-  supabase
-    .from('user_profiles')
-    .select('count')
-    .limit(1)
-    .then(({ data, error }) => {
-      if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('✅ Supabase connection successful - database ready')
-        } else if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          console.warn('⚠️ Connected but tables missing - run database migration')
-          console.warn('Go to Supabase SQL Editor and run the migration from supabase/migrations/')
-        } else if (error.message.includes('Failed to fetch') || 
-                   error.message.includes('NetworkError') ||
-                   error.message.includes('CORS')) {
-          console.error('❌ CRITICAL: Cannot reach Supabase project')
-          console.error('Possible causes:')
-          console.error('• Wrong project URL in .env file')
-          console.error('• Invalid API key')
-          console.error('• CORS/Network issues')
-          console.error('• Project region restrictions')
-          console.error('')
-          console.error('✅ Your project IS active (we can see it in dashboard)')
-          console.error('❌ But the URL/key in .env is wrong')
-          console.error('')
-          console.error('🔧 TO FIX:')
-          console.error('1. Go to https://supabase.com')
-          console.error('2. Open your project')
-          console.error('3. Go to Settings → API')
-          console.error('4. Copy the EXACT Project URL and anon key')
-          console.error('5. Update your .env file')
-          console.error('6. Restart dev server')
-        } else if (error.message.includes('JWT') || error.message.includes('Invalid API key')) {
-          console.error('❌ CRITICAL: Invalid API key')
-          console.error('Please check your VITE_SUPABASE_ANON_KEY in .env file')
-          console.error('Get the correct anon key from: Settings → API in your Supabase dashboard')
-        } else {
-          console.error('❌ Database error:', error.message)
-          console.error('Error code:', error.code)
-        }
-      } else {
-        console.log('✅ Supabase connection and database ready')
-      }
-    })
-    .catch((error) => {
-      console.error('❌ Connection test failed:', error.message)
-      if (error.message.includes('Failed to fetch')) {
-        console.error('')
-        console.error('🔧 MOST LIKELY CAUSE: Wrong project URL in .env file')
-        console.error('Your project is active, but the URL in .env is incorrect')
-        console.error('')
-        console.error('TO FIX:')
-        console.error('1. Go to https://supabase.com')
-        console.error('2. Open your project')
-        console.error('3. Copy the correct Project URL from Settings → API')
-        console.error('4. Update VITE_SUPABASE_URL in your .env file')
-        console.error('5. Restart: npm run dev')
-      }
-    })
-} else {
-  console.warn('⚠️ Skipping connection test - missing or placeholder credentials')
 }
 
-export const isUsingMockClient = false
+export const supabase = createMockClient()
+export const isUsingMockClient = true
 
-// Types for our database
+// Types for our database (keep these for TypeScript compatibility)
 export interface UserProfile {
   id: string
   first_name: string

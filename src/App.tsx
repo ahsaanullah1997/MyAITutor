@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthRedirect } from './components/AuthRedirect';
-import { SupabaseHealthCheck } from './components/SupabaseHealthCheck';
 
 // Import screens
 import { StitchDesign } from './screens/StitchDesign';
@@ -23,12 +22,27 @@ import { CompleteProfilePage } from './screens/AuthPage/CompleteProfilePage';
 // Import dashboard
 import { Dashboard } from './screens/Dashboard';
 
+// Offline mode notification component
+const OfflineModeNotification = () => (
+  <div className="fixed top-4 right-4 bg-blue-100 border border-blue-300 rounded-lg p-4 max-w-md z-50">
+    <div className="flex items-center space-x-2">
+      <span className="text-blue-600 text-lg">🔄</span>
+      <div>
+        <h3 className="font-bold text-blue-800">Offline Mode</h3>
+        <p className="text-blue-700 text-sm">
+          Supabase disconnected. Create new project and update .env to reconnect.
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="App">
-          <SupabaseHealthCheck />
+          <OfflineModeNotification />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<StitchDesign />} />
