@@ -106,8 +106,13 @@ export const CompleteProfilePage = (): JSX.Element => {
         board: formData.board,
       }, formData.profilePicture || undefined);
       
-      // Redirect to dashboard
-      window.location.href = '/dashboard';
+      // Redirect to subject group selection for grades that need it
+      if (requiresSubjectGroupSelection(formData.grade)) {
+        window.location.href = '/subject-group';
+      } else {
+        // Redirect directly to dashboard for grades that don't need group selection
+        window.location.href = '/dashboard';
+      }
     } catch (error: any) {
       setError(error.message || 'An error occurred while updating your profile');
     } finally {
@@ -145,6 +150,16 @@ export const CompleteProfilePage = (): JSX.Element => {
 
   // Check if selected grade requires board selection
   const requiresBoardSelection = (grade: string) => {
+    return [
+      "Class 9 (Metric)",
+      "Class 10 (Metric)", 
+      "Class 11 (FSc)",
+      "Class 12 (FSc)"
+    ].includes(grade);
+  };
+
+  // Check if selected grade requires subject group selection
+  const requiresSubjectGroupSelection = (grade: string) => {
     return [
       "Class 9 (Metric)",
       "Class 10 (Metric)", 
@@ -295,7 +310,7 @@ export const CompleteProfilePage = (): JSX.Element => {
                         {formData.profilePicture ? 'Uploading...' : 'Completing Profile...'}
                       </div>
                     ) : (
-                      'Complete Profile'
+                      requiresSubjectGroupSelection(formData.grade) ? 'Continue to Subject Selection' : 'Complete Profile'
                     )}
                   </Button>
 

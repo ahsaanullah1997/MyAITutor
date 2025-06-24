@@ -41,6 +41,8 @@ export interface UserProfile {
   board?: string
   area?: string
   profile_picture_url?: string
+  subject_group?: string
+  subjects?: string[]
   created_at: string
   updated_at: string
 }
@@ -84,6 +86,17 @@ export interface StudySession {
   created_at: string
 }
 
+export interface UserDatabase {
+  id: string
+  user_id: string
+  database_name: string
+  grade: string
+  board?: string
+  subjects: string[]
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -106,6 +119,11 @@ export interface Database {
         Row: StudySession
         Insert: Omit<StudySession, 'id' | 'created_at'>
         Update: Partial<Omit<StudySession, 'id' | 'user_id' | 'created_at'>>
+      }
+      user_databases: {
+        Row: UserDatabase
+        Insert: Omit<UserDatabase, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserDatabase, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
       }
     }
   }
