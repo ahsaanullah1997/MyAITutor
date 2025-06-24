@@ -5,8 +5,8 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 console.log('🔍 Supabase Configuration Check:')
-console.log('URL:', supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : '❌ MISSING')
-console.log('Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : '❌ MISSING')
+console.log('URL:', supabaseUrl ? `${supabaseUrl.substring(0, 50)}...` : '❌ MISSING')
+console.log('Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 30)}...` : '❌ MISSING')
 
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -16,12 +16,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('VITE_SUPABASE_ANON_KEY=your-anon-key-here')
 }
 
+// Check for placeholder values
+if (supabaseUrl.includes('your-actual-project-id') || supabaseAnonKey.includes('your-actual-anon-key')) {
+  console.error('❌ CRITICAL: You are using placeholder values in your .env file')
+  console.error('Please replace them with your actual Supabase credentials from:')
+  console.error('https://supabase.com → Your Project → Settings → API')
+}
+
 // Validate URL format
 if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
   console.error('❌ Invalid Supabase URL format. Must start with https://')
 }
 
-// Create Supabase client
+// Create Supabase client with enhanced configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
@@ -36,11 +43,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       'X-Client-Info': 'supabase-js-web'
     }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2,
+    },
   }
 })
 
 // Test connection on initialization
-if (supabaseUrl && supabaseAnonKey) {
+if (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('your-actual-project-id')) {
+  console.log('🔄 Testing Supabase connection...')
+  
+  // Test with a simple query
   supabase
     .from('user_profiles')
     .select('count')
@@ -51,15 +66,34 @@ if (supabaseUrl && supabaseAnonKey) {
           console.log('✅ Supabase connection successful - database ready')
         } else if (error.message.includes('relation') && error.message.includes('does not exist')) {
           console.warn('⚠️ Connected but tables missing - run database migration')
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          console.warn('Go to Supabase SQL Editor and run the migration from supabase/migrations/')
+        } else if (error.message.includes('Failed to fetch') || 
+                   error.message.includes('NetworkError') ||
+                   error.message.includes('CORS')) {
           console.error('❌ CRITICAL: Cannot reach Supabase project')
-          console.error('This usually means:')
-          console.error('• Project is paused/deleted')
-          console.error('• Wrong project URL')
-          console.error('• Network connectivity issues')
-          console.error('Go to https://supabase.com to check your project status')
+          console.error('Possible causes:')
+          console.error('• Wrong project URL in .env file')
+          console.error('• Invalid API key')
+          console.error('• CORS/Network issues')
+          console.error('• Project region restrictions')
+          console.error('')
+          console.error('✅ Your project IS active (we can see it in dashboard)')
+          console.error('❌ But the URL/key in .env is wrong')
+          console.error('')
+          console.error('🔧 TO FIX:')
+          console.error('1. Go to https://supabase.com')
+          console.error('2. Open your project')
+          console.error('3. Go to Settings → API')
+          console.error('4. Copy the EXACT Project URL and anon key')
+          console.error('5. Update your .env file')
+          console.error('6. Restart dev server')
+        } else if (error.message.includes('JWT') || error.message.includes('Invalid API key')) {
+          console.error('❌ CRITICAL: Invalid API key')
+          console.error('Please check your VITE_SUPABASE_ANON_KEY in .env file')
+          console.error('Get the correct anon key from: Settings → API in your Supabase dashboard')
         } else {
           console.error('❌ Database error:', error.message)
+          console.error('Error code:', error.code)
         }
       } else {
         console.log('✅ Supabase connection and database ready')
@@ -67,7 +101,21 @@ if (supabaseUrl && supabaseAnonKey) {
     })
     .catch((error) => {
       console.error('❌ Connection test failed:', error.message)
+      if (error.message.includes('Failed to fetch')) {
+        console.error('')
+        console.error('🔧 MOST LIKELY CAUSE: Wrong project URL in .env file')
+        console.error('Your project is active, but the URL in .env is incorrect')
+        console.error('')
+        console.error('TO FIX:')
+        console.error('1. Go to https://supabase.com')
+        console.error('2. Open your project')
+        console.error('3. Copy the correct Project URL from Settings → API')
+        console.error('4. Update VITE_SUPABASE_URL in your .env file')
+        console.error('5. Restart: npm run dev')
+      }
     })
+} else {
+  console.warn('⚠️ Skipping connection test - missing or placeholder credentials')
 }
 
 export const isUsingMockClient = false
