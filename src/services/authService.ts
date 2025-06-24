@@ -91,6 +91,13 @@ export class AuthService {
       })
 
       if (authError) {
+        // Check for Supabase connection issues first
+        if (authError.message.includes('SUPABASE CONNECTION FAILED') || 
+            authError.message.includes('Failed to fetch') ||
+            authError.message.includes('NetworkError')) {
+          throw new Error('🚨 Cannot connect to authentication service.\n\nYour Supabase project may be paused or deleted.\nPlease check https://supabase.com for your project status.\n\nSee SUPABASE_CONNECTION_FIX.md for help.')
+        }
+        
         // Provide more user-friendly error messages
         if (authError.message.includes('already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.')
@@ -104,9 +111,7 @@ export class AuthService {
         if (authError.message.includes('not configured')) {
           throw new Error('Authentication service is not configured. Please set up your Supabase credentials.')
         }
-        if (authError.message.includes('Failed to fetch') || authError.message.includes('Connection timeout')) {
-          throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.')
-        }
+        
         throw new Error(authError.message)
       }
 
@@ -150,6 +155,13 @@ export class AuthService {
       })
 
       if (error) {
+        // Check for Supabase connection issues first
+        if (error.message.includes('SUPABASE CONNECTION FAILED') || 
+            error.message.includes('Failed to fetch') ||
+            error.message.includes('NetworkError')) {
+          throw new Error('🚨 Cannot connect to authentication service.\n\nYour Supabase project may be paused or deleted.\nPlease check https://supabase.com for your project status.\n\nSee SUPABASE_CONNECTION_FIX.md for help.')
+        }
+        
         // Provide more user-friendly error messages
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials and try again.')
@@ -163,9 +175,7 @@ export class AuthService {
         if (error.message.includes('not configured')) {
           throw new Error('Authentication service is not configured. Please set up your Supabase credentials.')
         }
-        if (error.message.includes('Failed to fetch') || error.message.includes('Connection timeout')) {
-          throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.')
-        }
+        
         throw new Error(error.message)
       }
 
@@ -200,8 +210,10 @@ export class AuthService {
         if (error.message === 'Auth session missing!' || error.message.includes('not configured')) {
           return null
         }
-        if (error.message.includes('Failed to fetch') || error.message.includes('Connection timeout')) {
-          console.warn('Unable to verify user session due to connection issues')
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('Connection timeout') ||
+            error.message.includes('SUPABASE CONNECTION FAILED')) {
+          console.warn('Unable to verify user session due to Supabase connection issues')
           return null
         }
         throw error
@@ -223,8 +235,10 @@ export class AuthService {
       
       if (sessionError && !sessionError.message.includes('not configured')) {
         console.error('Session error:', sessionError)
-        if (sessionError.message.includes('Failed to fetch') || sessionError.message.includes('Connection timeout')) {
-          throw new Error('Unable to verify session due to connection issues. Please check your internet connection and try again.')
+        if (sessionError.message.includes('Failed to fetch') || 
+            sessionError.message.includes('Connection timeout') ||
+            sessionError.message.includes('SUPABASE CONNECTION FAILED')) {
+          throw new Error('🚨 Cannot connect to Supabase.\n\nYour project may be paused or deleted.\nCheck https://supabase.com for your project status.\n\nSee SUPABASE_CONNECTION_FIX.md for help.')
         }
         throw new Error('Authentication session error. Please sign in again.')
       }
@@ -238,7 +252,7 @@ export class AuthService {
 
       // Make the profile request with timeout and better error handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // Reduced to 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 3000) // Reduced to 3 second timeout
 
       try {
         const { data, error } = await supabase
@@ -258,9 +272,12 @@ export class AuthService {
             hint: error.hint
           })
           
-          // Check for specific error types
-          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Connection timeout')) {
-            throw new Error('Unable to connect to the database. Please check your internet connection and Supabase project status.')
+          // Check for Supabase connection issues
+          if (error.message.includes('SUPABASE CONNECTION FAILED') ||
+              error.message.includes('Failed to fetch') || 
+              error.message.includes('NetworkError') || 
+              error.message.includes('Connection timeout')) {
+            throw new Error('🚨 Cannot connect to Supabase database.\n\nYour project may be paused or deleted.\nCheck https://supabase.com for your project status.\n\nSee SUPABASE_CONNECTION_FIX.md for help.')
           }
           
           if (error.message.includes('relation "user_profiles" does not exist')) {
@@ -292,7 +309,7 @@ export class AuthService {
         
         if (fetchError instanceof Error) {
           if (fetchError.name === 'AbortError') {
-            throw new Error('Database request timed out. Please check your internet connection and Supabase project status.')
+            throw new Error('🚨 Database request timed out.\n\nYour Supabase project may be paused.\nCheck https://supabase.com for your project status.')
           }
           
           if (fetchError.message.includes('not configured')) {
@@ -300,7 +317,7 @@ export class AuthService {
           }
           
           if (fetchError.message.includes('Failed to fetch')) {
-            throw new Error('Unable to connect to the database. Please verify your Supabase project URL and internet connection.')
+            throw new Error('🚨 Cannot connect to Supabase database.\n\nYour project may be paused or deleted.\nCheck https://supabase.com for your project status.')
           }
         }
         
@@ -321,7 +338,7 @@ export class AuthService {
       
       // Re-throw the error with more context if it's a network error
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to connect to the database. Please verify your Supabase project is running and accessible.')
+        throw new Error('🚨 Cannot connect to Supabase database.\n\nYour project may be paused or deleted.\nCheck https://supabase.com for your project status.')
       }
       
       throw error
@@ -357,11 +374,13 @@ export class AuthService {
         .single()
 
       if (error) {
+        if (error.message.includes('SUPABASE CONNECTION FAILED') ||
+            error.message.includes('Failed to fetch') || 
+            error.message.includes('Connection timeout')) {
+          throw new Error('🚨 Cannot connect to database.\n\nYour Supabase project may be paused.\nCheck https://supabase.com for your project status.')
+        }
         if (error.message.includes('not configured')) {
           throw new Error('Database not configured. Please set up your Supabase credentials.')
-        }
-        if (error.message.includes('Failed to fetch') || error.message.includes('Connection timeout')) {
-          throw new Error('Unable to connect to the database. Please check your internet connection and try again.')
         }
         throw error
       }
@@ -380,14 +399,16 @@ export class AuthService {
       })
 
       if (error) {
+        if (error.message.includes('SUPABASE CONNECTION FAILED') ||
+            error.message.includes('Failed to fetch') || 
+            error.message.includes('Connection timeout')) {
+          throw new Error('🚨 Cannot connect to authentication service.\n\nYour Supabase project may be paused.\nCheck https://supabase.com for your project status.')
+        }
         if (error.message.includes('Invalid email')) {
           throw new Error('Please enter a valid email address.')
         }
         if (error.message.includes('not configured')) {
           throw new Error('Password reset is not available. Please contact support.')
-        }
-        if (error.message.includes('Failed to fetch') || error.message.includes('Connection timeout')) {
-          throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.')
         }
         throw new Error(error.message)
       }
