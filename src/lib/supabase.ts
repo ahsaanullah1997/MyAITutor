@@ -26,7 +26,7 @@ console.log('Supabase Environment Check:', {
 let supabase: any
 let isUsingMockClient = false
 
-// Create mock client function
+// Create mock client function with enhanced error messages
 const createMockClient = (reason: string) => {
   console.warn(`🔄 Using mock Supabase client: ${reason}`)
   console.warn('📋 To fix this:')
@@ -37,17 +37,22 @@ const createMockClient = (reason: string) => {
   
   isUsingMockClient = true
   
+  const mockError = { 
+    message: '⚠️ Supabase connection failed. Please check your project status and credentials.',
+    code: 'SUPABASE_CONNECTION_ERROR'
+  }
+  
   return {
     auth: {
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signUp: () => Promise.resolve({ 
         data: { user: null, session: null }, 
-        error: { message: '⚠️ Supabase connection failed. Please check your project status and credentials.' } 
+        error: mockError
       }),
       signInWithPassword: () => Promise.resolve({ 
         data: { user: null, session: null }, 
-        error: { message: '⚠️ Supabase connection failed. Please check your project status and credentials.' } 
+        error: mockError
       }),
       signOut: () => Promise.resolve({ error: null }),
       onAuthStateChange: (callback: any) => {
@@ -72,14 +77,14 @@ const createMockClient = (reason: string) => {
       }),
       insert: () => Promise.resolve({ 
         data: null, 
-        error: { message: '⚠️ Supabase connection failed. Please check your project status and credentials.' } 
+        error: mockError
       }),
       update: () => ({
         eq: () => ({
           select: () => ({
             single: () => Promise.resolve({ 
               data: null, 
-              error: { message: '⚠️ Supabase connection failed. Please check your project status and credentials.' } 
+              error: mockError
             })
           })
         })
@@ -88,12 +93,202 @@ const createMockClient = (reason: string) => {
         select: () => ({
           single: () => Promise.resolve({ 
             data: null, 
-            error: { message: '⚠️ Supabase connection failed. Please check your project status and credentials.' } 
+            error: mockError
           })
         })
       })
     })
   }
+}
+
+// Enhanced connection retry logic
+const createResilientClient = (url: string, key: string) => {
+  const baseClient = createClient(url, key, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    },
+    db: {
+      schema: 'public',
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2,
+      },
+    },
+    global: {
+      fetch: async (url, options = {}) => {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+          })
+          
+          clearTimeout(timeoutId)
+          
+          // Check for specific error responses that indicate project issues
+          if (!response.ok) {
+            if (response.status === 503) {
+              throw new Error('Supabase project is temporarily unavailable (503). Please check if your project is paused.')
+            } else if (response.status === 404) {
+              throw new Error('Supabase project not found (404). Please verify your project URL.')
+            } else if (response.status >= 500) {
+              throw new Error(`Supabase server error (${response.status}). Please try again later.`)
+            }
+          }
+          
+          return response
+        } catch (error) {
+          clearTimeout(timeoutId)
+          
+          if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+              throw new Error('Request timeout - Supabase project may be slow or inactive')
+            } else if (error.message.includes('Failed to fetch') || 
+                       error.message.includes('NetworkError') ||
+                       error.message.includes('fetch')) {
+              throw new Error('Cannot connect to Supabase project. Please check if your project is active and your network connection is stable.')
+            }
+          }
+          
+          throw error
+        }
+      }
+    }
+  })
+
+  // Create a proxy to handle connection failures gracefully
+  return new Proxy(baseClient, {
+    get(target, prop) {
+      const value = target[prop]
+      
+      // Intercept auth methods to catch connection errors
+      if (prop === 'auth') {
+        return new Proxy(value, {
+          get(authTarget, authProp) {
+            const authValue = authTarget[authProp]
+            
+            if (typeof authValue === 'function') {
+              return async (...args: any[]) => {
+                try {
+                  return await authValue.apply(authTarget, args)
+                } catch (error) {
+                  console.error(`🔄 Auth ${authProp} failed:`, error)
+                  
+                  // Handle onAuthStateChange specifically
+                  if (authProp === 'onAuthStateChange') {
+                    const callback = args[0]
+                    if (typeof callback === 'function') {
+                      setTimeout(() => callback('SIGNED_OUT', null), 100)
+                    }
+                    return { data: { subscription: { unsubscribe: () => {} } } }
+                  }
+                  
+                  // Return appropriate responses for different auth methods
+                  if (authProp === 'getUser' || authProp === 'getSession') {
+                    return { data: { user: null, session: null }, error: null }
+                  }
+                  
+                  // For sign-in/sign-up methods, return error with helpful message
+                  const errorMessage = error instanceof Error ? error.message : 'Unknown connection error'
+                  return { 
+                    data: { user: null, session: null }, 
+                    error: { 
+                      message: `⚠️ ${errorMessage}`,
+                      code: 'CONNECTION_ERROR'
+                    } 
+                  }
+                }
+              }
+            }
+            
+            return authValue
+          }
+        })
+      }
+      
+      // Intercept database operations to provide better error handling
+      if (prop === 'from') {
+        return (table: string) => {
+          const tableClient = value.call(target, table)
+          
+          return new Proxy(tableClient, {
+            get(tableTarget, tableProp) {
+              const tableValue = tableTarget[tableProp]
+              
+              if (typeof tableValue === 'function') {
+                return (...args: any[]) => {
+                  const result = tableValue.apply(tableTarget, args)
+                  
+                  // If it's a promise (database operation), add error handling
+                  if (result && typeof result.then === 'function') {
+                    return result.catch((error: any) => {
+                      console.error(`🔄 Database operation ${tableProp} failed:`, error)
+                      
+                      const errorMessage = error instanceof Error ? error.message : 'Database connection error'
+                      return {
+                        data: null,
+                        error: {
+                          message: `⚠️ ${errorMessage}`,
+                          code: 'DATABASE_CONNECTION_ERROR'
+                        }
+                      }
+                    })
+                  }
+                  
+                  // For chained operations, return the proxy
+                  if (result && typeof result === 'object') {
+                    return new Proxy(result, {
+                      get(chainTarget, chainProp) {
+                        const chainValue = chainTarget[chainProp]
+                        
+                        if (typeof chainValue === 'function') {
+                          return (...chainArgs: any[]) => {
+                            const chainResult = chainValue.apply(chainTarget, chainArgs)
+                            
+                            if (chainResult && typeof chainResult.then === 'function') {
+                              return chainResult.catch((error: any) => {
+                                console.error(`🔄 Database chain operation ${chainProp} failed:`, error)
+                                
+                                const errorMessage = error instanceof Error ? error.message : 'Database connection error'
+                                return {
+                                  data: null,
+                                  error: {
+                                    message: `⚠️ ${errorMessage}`,
+                                    code: 'DATABASE_CONNECTION_ERROR'
+                                  }
+                                }
+                              })
+                            }
+                            
+                            return chainResult
+                          }
+                        }
+                        
+                        return chainValue
+                      }
+                    })
+                  }
+                  
+                  return result
+                }
+              }
+              
+              return tableValue
+            }
+          })
+        }
+      }
+      
+      // Return the original value for other operations
+      return value
+    }
+  })
 }
 
 if (hasPlaceholderValues) {
@@ -109,45 +304,15 @@ if (hasPlaceholderValues) {
 
   if (!isUsingMockClient) {
     try {
-      // Create the real client with enhanced error handling and timeout settings
-      const realClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true,
-          flowType: 'pkce'
-        },
-        db: {
-          schema: 'public',
-        },
-        realtime: {
-          params: {
-            eventsPerSecond: 2,
-          },
-        },
-        global: {
-          fetch: (url, options = {}) => {
-            // Add timeout to all requests
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-            
-            return fetch(url, {
-              ...options,
-              signal: controller.signal,
-            }).finally(() => {
-              clearTimeout(timeoutId)
-            })
-          }
-        }
-      })
+      supabase = createResilientClient(supabaseUrl, supabaseAnonKey)
 
-      // Test connection with better error handling
+      // Enhanced connection test
       const testConnection = async () => {
         try {
           console.log('🔍 Testing Supabase connection...')
           
-          // Test basic connectivity with a simple query
-          const { data, error } = await realClient
+          // Test basic connectivity with a simple query to user_profiles table
+          const { data, error } = await supabase
             .from('user_profiles')
             .select('count')
             .limit(1)
@@ -202,67 +367,26 @@ if (hasPlaceholderValues) {
         }
       }
 
-      // Create a proxy to handle auth connection failures gracefully
-      supabase = new Proxy(realClient, {
-        get(target, prop) {
-          const value = target[prop]
-          
-          // Intercept auth methods to catch connection errors
-          if (prop === 'auth') {
-            return new Proxy(value, {
-              get(authTarget, authProp) {
-                const authValue = authTarget[authProp]
-                
-                if (typeof authValue === 'function') {
-                  return async (...args: any[]) => {
-                    try {
-                      return await authValue.apply(authTarget, args)
-                    } catch (error) {
-                      if (error instanceof Error && 
-                          (error.message.includes('Failed to fetch') || 
-                           error.message.includes('NetworkError') ||
-                           error.name === 'AbortError' ||
-                           error.message.includes('fetch'))) {
-                        console.error('🔄 Auth request failed - Supabase connection issue')
-                        
-                        // Handle onAuthStateChange specifically
-                        if (authProp === 'onAuthStateChange') {
-                          const callback = args[0]
-                          if (typeof callback === 'function') {
-                            setTimeout(() => callback('SIGNED_OUT', null), 100)
-                          }
-                          return { data: { subscription: { unsubscribe: () => {} } } }
-                        }
-                        
-                        // Return mock response for other auth failures
-                        if (authProp === 'getUser' || authProp === 'getSession') {
-                          return { data: { user: null, session: null }, error: null }
-                        }
-                        return { 
-                          data: { user: null, session: null }, 
-                          error: { message: '⚠️ Unable to connect to Supabase. Please check your project status.' } 
-                        }
-                      }
-                      throw error
-                    }
-                  }
-                }
-                
-                return authValue
-              }
-            })
-          }
-          
-          // Return the original value for database operations - let native error handling work
-          return value
-        }
-      })
-
-      // Run connection test in development mode
+      // Run connection test in development mode with retry logic
       if (import.meta.env.DEV) {
-        testConnection().catch(() => {
-          console.error('🔄 Initial Supabase connection test failed')
-        })
+        let retryCount = 0
+        const maxRetries = 3
+        
+        const testWithRetry = async () => {
+          try {
+            await testConnection()
+          } catch (error) {
+            retryCount++
+            if (retryCount < maxRetries) {
+              console.log(`🔄 Retrying connection test (${retryCount}/${maxRetries})...`)
+              setTimeout(testWithRetry, 2000 * retryCount) // Exponential backoff
+            } else {
+              console.error('🔄 All connection test attempts failed')
+            }
+          }
+        }
+        
+        testWithRetry()
       }
 
     } catch (error) {
