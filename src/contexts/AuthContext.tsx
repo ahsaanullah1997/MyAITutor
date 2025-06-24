@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { AuthService } from '../services/authService'
 import { ProgressService } from '../services/progressService'
+import { SubjectGroupService } from '../services/subjectGroupService'
 import type { UserProfile, UserProgressStats, SubjectProgress } from '../lib/supabase'
 
 interface AuthContextType {
@@ -13,6 +14,7 @@ interface AuthContextType {
   loading: boolean
   error: string | null
   isNewUser: boolean
+  hasSubjectGroup: boolean
   signUp: (data: any) => Promise<void>
   signIn: (data: any) => Promise<void>
   signOut: () => Promise<void>
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isNewUser, setIsNewUser] = useState(false)
+  const [hasSubjectGroup, setHasSubjectGroup] = useState(false)
 
   const loadUserProfile = async (userId: string) => {
     try {
@@ -105,6 +108,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const checkSubjectGroupSelection = async (userId: string) => {
+    try {
+      console.log('Checking subject group selection for user:', userId)
+      const subjectGroup = await SubjectGroupService.getUserSubjectGroup(userId)
+      const hasGroup = !!(subjectGroup && subjectGroup.subjects.length > 0)
+      setHasSubjectGroup(hasGroup)
+      console.log('Subject group check result:', hasGroup)
+    } catch (error) {
+      console.error('Error checking subject group:', error)
+      setHasSubjectGroup(false)
+    }
+  }
+
   const refreshProgress = async () => {
     if (user) {
       await loadUserProgress(user.id)
@@ -133,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (user) {
       await loadUserProfile(user.id)
       await loadUserProgress(user.id)
+      await checkSubjectGroupSelection(user.id)
     }
   }
 
@@ -172,9 +189,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
             setIsNewUser(isNewUserFlag)
             
-            // Load profile and progress in background, don't block UI
+            // Load profile, progress, and subject group in background
             loadUserProfile(currentUser.id).catch(console.error)
             loadUserProgress(currentUser.id).catch(console.error)
+            checkSubjectGroupSelection(currentUser.id).catch(console.error)
           }
         } catch (authError) {
           clearTimeout(timeoutId)
@@ -194,6 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProfile(null)
           setProgressStats(null)
           setSubjectProgress([])
+          setHasSubjectGroup(false)
           
           // Only set error for critical issues
           const errorMessage = error instanceof Error ? error.message : 'Session initialization failed'
@@ -228,14 +247,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const isNewUserFlag = localStorage.getItem('isNewUser') === 'true'
             setIsNewUser(isNewUserFlag)
             
-            // Load profile and progress asynchronously
+            // Load profile, progress, and subject group asynchronously
             loadUserProfile(session.user.id).catch(console.error)
             loadUserProgress(session.user.id).catch(console.error)
+            checkSubjectGroupSelection(session.user.id).catch(console.error)
           } else {
             setProfile(null)
             setProgressStats(null)
             setSubjectProgress([])
             setIsNewUser(false)
+            setHasSubjectGroup(false)
           }
           
           // Set loading to false immediately for auth state changes
@@ -327,6 +348,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setProgressStats(null)
       setSubjectProgress([])
       setSession(null)
+      setHasSubjectGroup(false)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sign out failed'
       setError(errorMessage)
@@ -355,14 +377,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedProfile = await AuthService.updateUserProfile(user.id, profileData, profilePicture)
       setProfile(updatedProfile)
       
-      // If this was a new user completing their profile, mark as completed and initialize progress
+      // If this was a new user completing their profile, initialize progress
       if (isNewUser) {
-        markProfileCompleted()
         // Initialize progress tracking for new user
         await ProgressService.initializeUserProgress(user.id)
         await ProgressService.initializeSubjects(user.id)
         await loadUserProgress(user.id)
       }
+      
+      // Check subject group status after profile update
+      await checkSubjectGroupSelection(user.id)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Profile update failed'
       setError(errorMessage)
@@ -379,6 +403,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     error,
     isNewUser,
+    hasSubjectGroup,
     signUp,
     signIn,
     signOut,

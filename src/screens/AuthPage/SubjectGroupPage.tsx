@@ -32,7 +32,14 @@ export const SubjectGroupPage = (): JSX.Element => {
     if (groups.length === 1) {
       setSelectedGroup(groups[0].id);
     }
-  }, [user, profile]);
+
+    // If this grade doesn't require subject group selection, redirect to dashboard
+    if (!SubjectGroupService.requiresSubjectGroupSelection(profile.grade)) {
+      markProfileCompleted();
+      window.location.href = '/dashboard';
+      return;
+    }
+  }, [user, profile, markProfileCompleted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
